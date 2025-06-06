@@ -1,0 +1,2 @@
+(()=>{"use strict";var e={157:e=>{e.exports=require("electron")}},r={};function o(t){var n=r[t];if(void 0!==n)return n.exports;var i=r[t]={exports:{}};return e[t](i,i.exports,o),i.exports}(()=>{const e=o(157);e.contextBridge.exposeInMainWorld("electronAPI",{selectRepository:()=>e.ipcRenderer.invoke("select-repository"),selectBfgJar:()=>e.ipcRenderer.invoke("select-bfg-jar"),cleanRepository:r=>e.ipcRenderer.invoke("clean-repository",r)})})()})();
+//# sourceMappingURL=preload.js.map
