@@ -38,3 +38,18 @@ If you see this error, it means the GitHub token doesn't have sufficient permiss
 
 1. Make sure the repository settings allow the GitHub token to have write permissions for actions
 2. Try the manual upload workflow described above
+
+### Shell Syntax Errors
+
+The workflow uses different shell environments depending on the operating system:
+- Windows: PowerShell (pwsh)
+- macOS/Linux: Bash
+
+If you encounter shell syntax errors (like "Missing '(' after 'if' in if statement"), check that:
+
+1. Shell conditional syntax matches the environment:
+   - Bash: `if [[ "$variable" == "value" ]]; then`
+   - PowerShell: `if ($variable -eq "value") {`
+
+2. Each OS uses the appropriate shell command:
+   - We've separated the build steps by platform to avoid shell compatibility issues

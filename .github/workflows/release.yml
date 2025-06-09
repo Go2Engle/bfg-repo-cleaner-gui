@@ -40,7 +40,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Build and package
+      - name: Build and package for macOS/Linux
+        if: matrix.platform != 'win'
+        shell: bash
         run: |
           # For macOS on GitHub Actions, we'll detect the architecture
           if [[ "${{ matrix.platform }}" == "mac" ]]; then
@@ -48,9 +50,16 @@ jobs:
             echo "Building for macOS on $arch architecture"
             npm run make
           else
-            # For non-macOS platforms, just use the default make
+            echo "Building for Linux"
             npm run make
           fi
+      
+      - name: Build and package for Windows
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          Write-Host "Building for Windows"
+          npm run make
       
       - name: Determine macOS architecture
         if: matrix.platform == 'mac'
