@@ -1,3 +1,7 @@
+<div align="Center">
+  <img src="assets/bfg-cleaner-gui-icon.png" alt="BFG Repo-Cleaner GUI Logo" width="200">
+</div>
+
 # BFG Repo-Cleaner GUI
 
 A cross-platform GUI application for [BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/), a simpler and faster alternative to git-filter-branch for cleaning Git repositories of sensitive data and large files.
