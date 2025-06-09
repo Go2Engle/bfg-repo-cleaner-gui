@@ -182,16 +182,72 @@ body {
   margin-bottom: 16px;
 }
 .info-section .note {
-  background-color: #fff9e6;
-  border-left: 4px solid #ffc107;
-  padding: 12px;
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f8f8;
+  border-left: 4px solid #5e5ce6;
   border-radius: 4px;
 }
-.info-section .note code {
-  background-color: rgba(0, 0, 0, 0.05);
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: Consolas, Monaco, "Andale Mono", monospace;
+.info-section .note p {
+  margin-bottom: 10px;
+}
+.info-section .note pre {
+  background-color: #eee;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 15px;
+}
+.info-section .note pre code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 0.9em;
+}
+
+.repo-selection {
+  margin-bottom: 20px;
+}
+.repo-selection .repo-selection-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.repo-selection .repo-selection-buttons button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #d1d1d6;
+  border-radius: 6px;
+  background-color: #f5f5f7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.repo-selection .repo-selection-buttons button.selected {
+  background-color: #0066cc;
+  color: white;
+  border-color: #0066cc;
+}
+.repo-selection .repo-selection-buttons button:hover:not(.selected) {
+  background-color: #eaeaea;
+}
+
+.clone-actions {
+  margin: 20px 0;
+}
+.clone-actions .clone-button {
+  background-color: #5e5ce6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.clone-actions .clone-button:hover:not(:disabled) {
+  background-color: rgb(50.3244680851, 47.7819148936, 223.2180851064);
+}
+.clone-actions .clone-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .footer {
@@ -208,7 +264,7 @@ body {
 }
 .footer a:hover {
   text-decoration: underline;
-}`, "",{"version":3,"sources":["webpack://./src/renderer/styles/App.scss"],"names":[],"mappings":"AAAA;EACE,sBAAA;EACA,SAAA;EACA,UAAA;AACF;;AAEA;EACE,wIAAA;EACA,yBAAA;EACA,WAAA;EACA,gBAAA;AACF;;AAsBA;EACE,gBAAA;EACA,cAAA;EACA,aAAA;AAnBF;;AAsBA;EACE,kBAAA;EACA,mBAAA;AAnBF;AAqBE;EACE,cA9BY;EA+BZ,iBAAA;EACA,kBAAA;AAnBJ;AAsBE;EACE,WA5Ba;EA6Bb,iBAAA;AApBJ;;AAwBA;EACE,aAAA;EACA,sBAAA;EACA,SAAA;AArBF;;AAwBA;EAnCE,sBANc;EAOd,mBAAA;EACA,wCAAA;EACA,aAAA;EACA,mBAAA;AAeF;AAmBE;EACE,mBAAA;EACA,WA7CS;EA8CT,gCAAA;EACA,mBAAA;AAjBJ;;AAqBA;EACE,mBAAA;AAlBF;AAoBE;EACE,cAAA;EACA,kBAAA;EACA,gBAAA;AAlBJ;AAqBE;EACE,WAAA;EACA,aAAA;EACA,yBAAA;EACA,kBAAA;EACA,eAAA;AAnBJ;AAqBI;EACE,qBA3EU;EA4EV,aAAA;EACA,4CAAA;AAnBN;AAuBE;EACE,eAAA;EACA,kBAAA;EACA,WA5Ea;AAuDjB;;AAyBA;EACE,aAAA;EACA,SAAA;AAtBF;AAwBE;EACE,YAAA;AAtBJ;AAyBE;EACE,kBAAA;EACA,yBAjGc;EAkGd,YAAA;EACA,YAAA;EACA,kBAAA;EACA,eAAA;EACA,eAAA;EACA,iCAAA;AAvBJ;AAyBI;EACE,mEAAA;AAvBN;;AA4BA;EACE,aAAA;EACA,uBAAA;EACA,cAAA;AAzBF;AA2BE;EACE,kBAAA;EACA,yBAvHY;EAwHZ,YAAA;EACA,YAAA;EACA,kBAAA;EACA,eAAA;EACA,gBAAA;EACA,eAAA;EACA,iCAAA;AAzBJ;AA2BI;EACE,mCAAA;AAzBN;AA4BI;EACE,wCAAA;EACA,mBAAA;AA1BN;;AA+BA;EA/HE,sBANc;EAOd,mBAAA;EACA,wCAAA;EACA,aAAA;EACA,mBAAA;EA6HA,gBAAA;AAxBF;AA0BE;EACE,mBAAA;AAxBJ;AA2BE;EACE,yBAAA;EACA,yBAAA;EACA,kBAAA;EACA,aAAA;EACA,gBAAA;EACA,iBAAA;EACA,gBAAA;EACA,iBAAA;EACA,gBAAA;AAzBJ;AA4BE;EACE,cA9JY;AAoIhB;AA6BE;EACE,cAjKU;AAsId;;AAgCE;EACE,iBAAA;EACA,mBAAA;AA7BJ;AAgCE;EACE,mBAAA;AA9BJ;AAiCE;EACE,yBAAA;EACA,8BAAA;EACA,aAAA;EACA,kBAAA;AA/BJ;AAiCI;EACE,qCAAA;EACA,gBAAA;EACA,kBAAA;EACA,uDAAA;AA/BN;;AAoCA;EACE,kBAAA;EACA,gBAAA;EACA,eAAA;EACA,6BAAA;EACA,WA9Le;EA+Lf,iBAAA;AAjCF;AAmCE;EACE,cA1MY;EA2MZ,qBAAA;AAjCJ;AAmCI;EACE,0BAAA;AAjCN","sourcesContent":["* {\n  box-sizing: border-box;\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;\n  background-color: #f5f5f7;\n  color: #333;\n  line-height: 1.6;\n}\n\n// Variables\n$primary-color: #0066cc;\n$secondary-color: #5e5ce6;\n$success-color: #34c759;\n$error-color: #ff3b30;\n$border-color: #d1d1d6;\n$background-color: #f5f5f7;\n$card-bg-color: #fff;\n$text-color: #333;\n$text-secondary: #666;\n\n// Mixins\n@mixin card {\n  background-color: $card-bg-color;\n  border-radius: 10px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  padding: 20px;\n  margin-bottom: 20px;\n}\n\n.app {\n  max-width: 900px;\n  margin: 0 auto;\n  padding: 20px;\n}\n\n.header {\n  text-align: center;\n  margin-bottom: 30px;\n  \n  h1 {\n    color: $primary-color;\n    font-size: 2.2rem;\n    margin-bottom: 8px;\n  }\n  \n  .subtitle {\n    color: $text-secondary;\n    font-size: 1.1rem;\n  }\n}\n\n.main {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n\n.section {\n  @include card;\n  \n  h2 {\n    margin-bottom: 16px;\n    color: $text-color;\n    border-bottom: 1px solid $border-color;\n    padding-bottom: 8px;\n  }\n}\n\n.form-group {\n  margin-bottom: 16px;\n  \n  label {\n    display: block;\n    margin-bottom: 8px;\n    font-weight: 500;\n  }\n  \n  input, textarea {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid $border-color;\n    border-radius: 6px;\n    font-size: 14px;\n    \n    &:focus {\n      border-color: $primary-color;\n      outline: none;\n      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);\n    }\n  }\n  \n  .help-text {\n    margin-top: 5px;\n    font-size: 0.85rem;\n    color: $text-secondary;\n  }\n}\n\n.input-with-button {\n  display: flex;\n  gap: 10px;\n  \n  input {\n    flex-grow: 1;\n  }\n  \n  button {\n    padding: 10px 15px;\n    background-color: $secondary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    cursor: pointer;\n    font-size: 14px;\n    transition: background-color 0.2s;\n    \n    &:hover {\n      background-color: darken($secondary-color, 10%);\n    }\n  }\n}\n\n.action-buttons {\n  display: flex;\n  justify-content: center;\n  margin: 20px 0;\n\n  .primary-button {\n    padding: 12px 24px;\n    background-color: $primary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    font-size: 16px;\n    font-weight: 500;\n    cursor: pointer;\n    transition: background-color 0.2s;\n    \n    &:hover {\n      background-color: darken($primary-color, 10%);\n    }\n    \n    &:disabled {\n      background-color: lighten($primary-color, 25%);\n      cursor: not-allowed;\n    }\n  }\n}\n\n.result {\n  @include card;\n  margin-top: 20px;\n  \n  h3 {\n    margin-bottom: 10px;\n  }\n  \n  pre {\n    background-color: #f5f5f5;\n    border: 1px solid $border-color;\n    border-radius: 4px;\n    padding: 12px;\n    overflow-x: auto;\n    font-size: 0.9rem;\n    line-height: 1.4;\n    max-height: 300px;\n    overflow-y: auto;\n  }\n  \n  &.success h3 {\n    color: $success-color;\n  }\n  \n  &.error h3 {\n    color: $error-color;\n  }\n}\n\n.info-section {\n  ul {\n    margin-left: 20px;\n    margin-bottom: 16px;\n  }\n  \n  p {\n    margin-bottom: 16px;\n  }\n  \n  .note {\n    background-color: #fff9e6;\n    border-left: 4px solid #ffc107;\n    padding: 12px;\n    border-radius: 4px;\n    \n    code {\n      background-color: rgba(0, 0, 0, 0.05);\n      padding: 2px 4px;\n      border-radius: 3px;\n      font-family: Consolas, Monaco, 'Andale Mono', monospace;\n    }\n  }\n}\n\n.footer {\n  text-align: center;\n  margin-top: 30px;\n  padding: 20px 0;\n  border-top: 1px solid $border-color;\n  color: $text-secondary;\n  font-size: 0.9rem;\n  \n  a {\n    color: $primary-color;\n    text-decoration: none;\n    \n    &:hover {\n      text-decoration: underline;\n    }\n  }\n}\n"],"sourceRoot":""}]);
+}`, "",{"version":3,"sources":["webpack://./src/renderer/styles/App.scss"],"names":[],"mappings":"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","sourcesContent":["* {\n  box-sizing: border-box;\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;\n  background-color: #f5f5f7;\n  color: #333;\n  line-height: 1.6;\n}\n\n// Variables\n$primary-color: #0066cc;\n$secondary-color: #5e5ce6;\n$success-color: #34c759;\n$error-color: #ff3b30;\n$border-color: #d1d1d6;\n$background-color: #f5f5f7;\n$card-bg-color: #fff;\n$text-color: #333;\n$text-secondary: #666;\n\n// Mixins\n@mixin card {\n  background-color: $card-bg-color;\n  border-radius: 10px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  padding: 20px;\n  margin-bottom: 20px;\n}\n\n.app {\n  max-width: 900px;\n  margin: 0 auto;\n  padding: 20px;\n}\n\n.header {\n  text-align: center;\n  margin-bottom: 30px;\n  \n  h1 {\n    color: $primary-color;\n    font-size: 2.2rem;\n    margin-bottom: 8px;\n  }\n  \n  .subtitle {\n    color: $text-secondary;\n    font-size: 1.1rem;\n  }\n}\n\n.main {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n\n.section {\n  @include card;\n  \n  h2 {\n    margin-bottom: 16px;\n    color: $text-color;\n    border-bottom: 1px solid $border-color;\n    padding-bottom: 8px;\n  }\n}\n\n.form-group {\n  margin-bottom: 16px;\n  \n  label {\n    display: block;\n    margin-bottom: 8px;\n    font-weight: 500;\n  }\n  \n  input, textarea {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid $border-color;\n    border-radius: 6px;\n    font-size: 14px;\n    \n    &:focus {\n      border-color: $primary-color;\n      outline: none;\n      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);\n    }\n  }\n  \n  .help-text {\n    margin-top: 5px;\n    font-size: 0.85rem;\n    color: $text-secondary;\n  }\n}\n\n.input-with-button {\n  display: flex;\n  gap: 10px;\n  \n  input {\n    flex-grow: 1;\n  }\n  \n  button {\n    padding: 10px 15px;\n    background-color: $secondary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    cursor: pointer;\n    font-size: 14px;\n    transition: background-color 0.2s;\n    \n    &:hover {\n      background-color: darken($secondary-color, 10%);\n    }\n  }\n}\n\n.action-buttons {\n  display: flex;\n  justify-content: center;\n  margin: 20px 0;\n\n  .primary-button {\n    padding: 12px 24px;\n    background-color: $primary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    font-size: 16px;\n    font-weight: 500;\n    cursor: pointer;\n    transition: background-color 0.2s;\n    \n    &:hover {\n      background-color: darken($primary-color, 10%);\n    }\n    \n    &:disabled {\n      background-color: lighten($primary-color, 25%);\n      cursor: not-allowed;\n    }\n  }\n}\n\n.result {\n  @include card;\n  margin-top: 20px;\n  \n  h3 {\n    margin-bottom: 10px;\n  }\n  \n  pre {\n    background-color: #f5f5f5;\n    border: 1px solid $border-color;\n    border-radius: 4px;\n    padding: 12px;\n    overflow-x: auto;\n    font-size: 0.9rem;\n    line-height: 1.4;\n    max-height: 300px;\n    overflow-y: auto;\n  }\n  \n  &.success h3 {\n    color: $success-color;\n  }\n  \n  &.error h3 {\n    color: $error-color;\n  }\n}\n\n.info-section {\n  ul {\n    margin-left: 20px;\n    margin-bottom: 16px;\n  }\n  \n  p {\n    margin-bottom: 16px;\n  }\n  \n  .note {\n    margin-top: 15px;\n    padding: 15px;\n    background-color: #f8f8f8;\n    border-left: 4px solid $secondary-color;\n    border-radius: 4px;\n    \n    p {\n      margin-bottom: 10px;\n    }\n    \n    pre {\n      background-color: #eee;\n      padding: 10px;\n      border-radius: 4px;\n      overflow-x: auto;\n      margin-bottom: 15px;\n      \n      code {\n        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;\n        font-size: 0.9em;\n      }\n    }\n  }\n}\n\n.repo-selection {\n  margin-bottom: 20px;\n  \n  .repo-selection-buttons {\n    display: flex;\n    gap: 10px;\n    margin-bottom: 15px;\n    \n    button {\n      flex: 1;\n      padding: 10px;\n      border: 1px solid $border-color;\n      border-radius: 6px;\n      background-color: $background-color;\n      cursor: pointer;\n      transition: all 0.2s ease;\n      \n      &.selected {\n        background-color: $primary-color;\n        color: white;\n        border-color: $primary-color;\n      }\n      \n      &:hover:not(.selected) {\n        background-color: #eaeaea;\n      }\n    }\n  }\n}\n\n.clone-actions {\n  margin: 20px 0;\n  \n  .clone-button {\n    background-color: $secondary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    padding: 10px 20px;\n    font-size: 1rem;\n    cursor: pointer;\n    transition: background-color 0.2s;\n    \n    &:hover:not(:disabled) {\n      background-color: darken($secondary-color, 10%);\n    }\n    \n    &:disabled {\n      opacity: 0.6;\n      cursor: not-allowed;\n    }\n  }\n}\n\n.footer {\n  text-align: center;\n  margin-top: 30px;\n  padding: 20px 0;\n  border-top: 1px solid $border-color;\n  color: $text-secondary;\n  font-size: 0.9rem;\n  \n  a {\n    color: $primary-color;\n    text-decoration: none;\n    \n    &:hover {\n      text-decoration: underline;\n    }\n  }\n}\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -395,16 +451,72 @@ body {
   margin-bottom: 16px;
 }
 .info-section .note {
-  background-color: #fff9e6;
-  border-left: 4px solid #ffc107;
-  padding: 12px;
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f8f8;
+  border-left: 4px solid #5e5ce6;
   border-radius: 4px;
 }
-.info-section .note code {
-  background-color: rgba(0, 0, 0, 0.05);
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: Consolas, Monaco, "Andale Mono", monospace;
+.info-section .note p {
+  margin-bottom: 10px;
+}
+.info-section .note pre {
+  background-color: #eee;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 15px;
+}
+.info-section .note pre code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 0.9em;
+}
+
+.repo-selection {
+  margin-bottom: 20px;
+}
+.repo-selection .repo-selection-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.repo-selection .repo-selection-buttons button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #d1d1d6;
+  border-radius: 6px;
+  background-color: #f5f5f7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.repo-selection .repo-selection-buttons button.selected {
+  background-color: #0066cc;
+  color: white;
+  border-color: #0066cc;
+}
+.repo-selection .repo-selection-buttons button:hover:not(.selected) {
+  background-color: #eaeaea;
+}
+
+.clone-actions {
+  margin: 20px 0;
+}
+.clone-actions .clone-button {
+  background-color: #5e5ce6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.clone-actions .clone-button:hover:not(:disabled) {
+  background-color: rgb(50.3244680851, 47.7819148936, 223.2180851064);
+}
+.clone-actions .clone-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .footer {
@@ -421,7 +533,7 @@ body {
 }
 .footer a:hover {
   text-decoration: underline;
-}`, "",{"version":3,"sources":["webpack://./src/renderer/styles/App.scss","webpack://./src/renderer/styles/index.scss"],"names":[],"mappings":"AAAA;EACE,sBAAA;EACA,SAAA;EACA,UAAA;ACCF;;ADEA;EACE,wIAAA;EACA,yBAAA;EACA,WAAA;EACA,gBAAA;ACCF;;ADsBA;EACE,gBAAA;EACA,cAAA;EACA,aAAA;ACnBF;;ADsBA;EACE,kBAAA;EACA,mBAAA;ACnBF;ADqBE;EACE,cA9BY;EA+BZ,iBAAA;EACA,kBAAA;ACnBJ;ADsBE;EACE,WA5Ba;EA6Bb,iBAAA;ACpBJ;;ADwBA;EACE,aAAA;EACA,sBAAA;EACA,SAAA;ACrBF;;ADwBA;EAnCE,sBANc;EAOd,mBAAA;EACA,wCAAA;EACA,aAAA;EACA,mBAAA;ACeF;ADmBE;EACE,mBAAA;EACA,WA7CS;EA8CT,gCAAA;EACA,mBAAA;ACjBJ;;ADqBA;EACE,mBAAA;AClBF;ADoBE;EACE,cAAA;EACA,kBAAA;EACA,gBAAA;AClBJ;ADqBE;EACE,WAAA;EACA,aAAA;EACA,yBAAA;EACA,kBAAA;EACA,eAAA;ACnBJ;ADqBI;EACE,qBA3EU;EA4EV,aAAA;EACA,4CAAA;ACnBN;ADuBE;EACE,eAAA;EACA,kBAAA;EACA,WA5Ea;ACuDjB;;ADyBA;EACE,aAAA;EACA,SAAA;ACtBF;ADwBE;EACE,YAAA;ACtBJ;ADyBE;EACE,kBAAA;EACA,yBAjGc;EAkGd,YAAA;EACA,YAAA;EACA,kBAAA;EACA,eAAA;EACA,eAAA;EACA,iCAAA;ACvBJ;ADyBI;EACE,mEAAA;ACvBN;;AD4BA;EACE,aAAA;EACA,uBAAA;EACA,cAAA;ACzBF;AD2BE;EACE,kBAAA;EACA,yBAvHY;EAwHZ,YAAA;EACA,YAAA;EACA,kBAAA;EACA,eAAA;EACA,gBAAA;EACA,eAAA;EACA,iCAAA;ACzBJ;AD2BI;EACE,mCAAA;ACzBN;AD4BI;EACE,wCAAA;EACA,mBAAA;AC1BN;;AD+BA;EA/HE,sBANc;EAOd,mBAAA;EACA,wCAAA;EACA,aAAA;EACA,mBAAA;EA6HA,gBAAA;ACxBF;AD0BE;EACE,mBAAA;ACxBJ;AD2BE;EACE,yBAAA;EACA,yBAAA;EACA,kBAAA;EACA,aAAA;EACA,gBAAA;EACA,iBAAA;EACA,gBAAA;EACA,iBAAA;EACA,gBAAA;ACzBJ;AD4BE;EACE,cA9JY;ACoIhB;AD6BE;EACE,cAjKU;ACsId;;ADgCE;EACE,iBAAA;EACA,mBAAA;AC7BJ;ADgCE;EACE,mBAAA;AC9BJ;ADiCE;EACE,yBAAA;EACA,8BAAA;EACA,aAAA;EACA,kBAAA;AC/BJ;ADiCI;EACE,qCAAA;EACA,gBAAA;EACA,kBAAA;EACA,uDAAA;AC/BN;;ADoCA;EACE,kBAAA;EACA,gBAAA;EACA,eAAA;EACA,6BAAA;EACA,WA9Le;EA+Lf,iBAAA;ACjCF;ADmCE;EACE,cA1MY;EA2MZ,qBAAA;ACjCJ;ADmCI;EACE,0BAAA;ACjCN","sourcesContent":["* {\n  box-sizing: border-box;\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;\n  background-color: #f5f5f7;\n  color: #333;\n  line-height: 1.6;\n}\n\n// Variables\n$primary-color: #0066cc;\n$secondary-color: #5e5ce6;\n$success-color: #34c759;\n$error-color: #ff3b30;\n$border-color: #d1d1d6;\n$background-color: #f5f5f7;\n$card-bg-color: #fff;\n$text-color: #333;\n$text-secondary: #666;\n\n// Mixins\n@mixin card {\n  background-color: $card-bg-color;\n  border-radius: 10px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  padding: 20px;\n  margin-bottom: 20px;\n}\n\n.app {\n  max-width: 900px;\n  margin: 0 auto;\n  padding: 20px;\n}\n\n.header {\n  text-align: center;\n  margin-bottom: 30px;\n  \n  h1 {\n    color: $primary-color;\n    font-size: 2.2rem;\n    margin-bottom: 8px;\n  }\n  \n  .subtitle {\n    color: $text-secondary;\n    font-size: 1.1rem;\n  }\n}\n\n.main {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n\n.section {\n  @include card;\n  \n  h2 {\n    margin-bottom: 16px;\n    color: $text-color;\n    border-bottom: 1px solid $border-color;\n    padding-bottom: 8px;\n  }\n}\n\n.form-group {\n  margin-bottom: 16px;\n  \n  label {\n    display: block;\n    margin-bottom: 8px;\n    font-weight: 500;\n  }\n  \n  input, textarea {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid $border-color;\n    border-radius: 6px;\n    font-size: 14px;\n    \n    &:focus {\n      border-color: $primary-color;\n      outline: none;\n      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);\n    }\n  }\n  \n  .help-text {\n    margin-top: 5px;\n    font-size: 0.85rem;\n    color: $text-secondary;\n  }\n}\n\n.input-with-button {\n  display: flex;\n  gap: 10px;\n  \n  input {\n    flex-grow: 1;\n  }\n  \n  button {\n    padding: 10px 15px;\n    background-color: $secondary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    cursor: pointer;\n    font-size: 14px;\n    transition: background-color 0.2s;\n    \n    &:hover {\n      background-color: darken($secondary-color, 10%);\n    }\n  }\n}\n\n.action-buttons {\n  display: flex;\n  justify-content: center;\n  margin: 20px 0;\n\n  .primary-button {\n    padding: 12px 24px;\n    background-color: $primary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    font-size: 16px;\n    font-weight: 500;\n    cursor: pointer;\n    transition: background-color 0.2s;\n    \n    &:hover {\n      background-color: darken($primary-color, 10%);\n    }\n    \n    &:disabled {\n      background-color: lighten($primary-color, 25%);\n      cursor: not-allowed;\n    }\n  }\n}\n\n.result {\n  @include card;\n  margin-top: 20px;\n  \n  h3 {\n    margin-bottom: 10px;\n  }\n  \n  pre {\n    background-color: #f5f5f5;\n    border: 1px solid $border-color;\n    border-radius: 4px;\n    padding: 12px;\n    overflow-x: auto;\n    font-size: 0.9rem;\n    line-height: 1.4;\n    max-height: 300px;\n    overflow-y: auto;\n  }\n  \n  &.success h3 {\n    color: $success-color;\n  }\n  \n  &.error h3 {\n    color: $error-color;\n  }\n}\n\n.info-section {\n  ul {\n    margin-left: 20px;\n    margin-bottom: 16px;\n  }\n  \n  p {\n    margin-bottom: 16px;\n  }\n  \n  .note {\n    background-color: #fff9e6;\n    border-left: 4px solid #ffc107;\n    padding: 12px;\n    border-radius: 4px;\n    \n    code {\n      background-color: rgba(0, 0, 0, 0.05);\n      padding: 2px 4px;\n      border-radius: 3px;\n      font-family: Consolas, Monaco, 'Andale Mono', monospace;\n    }\n  }\n}\n\n.footer {\n  text-align: center;\n  margin-top: 30px;\n  padding: 20px 0;\n  border-top: 1px solid $border-color;\n  color: $text-secondary;\n  font-size: 0.9rem;\n  \n  a {\n    color: $primary-color;\n    text-decoration: none;\n    \n    &:hover {\n      text-decoration: underline;\n    }\n  }\n}\n","* {\n  box-sizing: border-box;\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n  background-color: #f5f5f7;\n  color: #333;\n  line-height: 1.6;\n}\n\n.app {\n  max-width: 900px;\n  margin: 0 auto;\n  padding: 20px;\n}\n\n.header {\n  text-align: center;\n  margin-bottom: 30px;\n}\n.header h1 {\n  color: #0066cc;\n  font-size: 2.2rem;\n  margin-bottom: 8px;\n}\n.header .subtitle {\n  color: #666;\n  font-size: 1.1rem;\n}\n\n.main {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n\n.section {\n  background-color: #fff;\n  border-radius: 10px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  padding: 20px;\n  margin-bottom: 20px;\n}\n.section h2 {\n  margin-bottom: 16px;\n  color: #333;\n  border-bottom: 1px solid #d1d1d6;\n  padding-bottom: 8px;\n}\n\n.form-group {\n  margin-bottom: 16px;\n}\n.form-group label {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 500;\n}\n.form-group input, .form-group textarea {\n  width: 100%;\n  padding: 10px;\n  border: 1px solid #d1d1d6;\n  border-radius: 6px;\n  font-size: 14px;\n}\n.form-group input:focus, .form-group textarea:focus {\n  border-color: #0066cc;\n  outline: none;\n  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);\n}\n.form-group .help-text {\n  margin-top: 5px;\n  font-size: 0.85rem;\n  color: #666;\n}\n\n.input-with-button {\n  display: flex;\n  gap: 10px;\n}\n.input-with-button input {\n  flex-grow: 1;\n}\n.input-with-button button {\n  padding: 10px 15px;\n  background-color: #5e5ce6;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 14px;\n  transition: background-color 0.2s;\n}\n.input-with-button button:hover {\n  background-color: rgb(50.3244680851, 47.7819148936, 223.2180851064);\n}\n\n.action-buttons {\n  display: flex;\n  justify-content: center;\n  margin: 20px 0;\n}\n.action-buttons .primary-button {\n  padding: 12px 24px;\n  background-color: #0066cc;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  font-size: 16px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: background-color 0.2s;\n}\n.action-buttons .primary-button:hover {\n  background-color: rgb(0, 76.5, 153);\n}\n.action-buttons .primary-button:disabled {\n  background-color: rgb(76.5, 165.75, 255);\n  cursor: not-allowed;\n}\n\n.result {\n  background-color: #fff;\n  border-radius: 10px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  padding: 20px;\n  margin-bottom: 20px;\n  margin-top: 20px;\n}\n.result h3 {\n  margin-bottom: 10px;\n}\n.result pre {\n  background-color: #f5f5f5;\n  border: 1px solid #d1d1d6;\n  border-radius: 4px;\n  padding: 12px;\n  overflow-x: auto;\n  font-size: 0.9rem;\n  line-height: 1.4;\n  max-height: 300px;\n  overflow-y: auto;\n}\n.result.success h3 {\n  color: #34c759;\n}\n.result.error h3 {\n  color: #ff3b30;\n}\n\n.info-section ul {\n  margin-left: 20px;\n  margin-bottom: 16px;\n}\n.info-section p {\n  margin-bottom: 16px;\n}\n.info-section .note {\n  background-color: #fff9e6;\n  border-left: 4px solid #ffc107;\n  padding: 12px;\n  border-radius: 4px;\n}\n.info-section .note code {\n  background-color: rgba(0, 0, 0, 0.05);\n  padding: 2px 4px;\n  border-radius: 3px;\n  font-family: Consolas, Monaco, \"Andale Mono\", monospace;\n}\n\n.footer {\n  text-align: center;\n  margin-top: 30px;\n  padding: 20px 0;\n  border-top: 1px solid #d1d1d6;\n  color: #666;\n  font-size: 0.9rem;\n}\n.footer a {\n  color: #0066cc;\n  text-decoration: none;\n}\n.footer a:hover {\n  text-decoration: underline;\n}"],"sourceRoot":""}]);
+}`, "",{"version":3,"sources":["webpack://./src/renderer/styles/App.scss","webpack://./src/renderer/styles/index.scss"],"names":[],"mappings":"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","sourcesContent":["* {\n  box-sizing: border-box;\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;\n  background-color: #f5f5f7;\n  color: #333;\n  line-height: 1.6;\n}\n\n// Variables\n$primary-color: #0066cc;\n$secondary-color: #5e5ce6;\n$success-color: #34c759;\n$error-color: #ff3b30;\n$border-color: #d1d1d6;\n$background-color: #f5f5f7;\n$card-bg-color: #fff;\n$text-color: #333;\n$text-secondary: #666;\n\n// Mixins\n@mixin card {\n  background-color: $card-bg-color;\n  border-radius: 10px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  padding: 20px;\n  margin-bottom: 20px;\n}\n\n.app {\n  max-width: 900px;\n  margin: 0 auto;\n  padding: 20px;\n}\n\n.header {\n  text-align: center;\n  margin-bottom: 30px;\n  \n  h1 {\n    color: $primary-color;\n    font-size: 2.2rem;\n    margin-bottom: 8px;\n  }\n  \n  .subtitle {\n    color: $text-secondary;\n    font-size: 1.1rem;\n  }\n}\n\n.main {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n\n.section {\n  @include card;\n  \n  h2 {\n    margin-bottom: 16px;\n    color: $text-color;\n    border-bottom: 1px solid $border-color;\n    padding-bottom: 8px;\n  }\n}\n\n.form-group {\n  margin-bottom: 16px;\n  \n  label {\n    display: block;\n    margin-bottom: 8px;\n    font-weight: 500;\n  }\n  \n  input, textarea {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid $border-color;\n    border-radius: 6px;\n    font-size: 14px;\n    \n    &:focus {\n      border-color: $primary-color;\n      outline: none;\n      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);\n    }\n  }\n  \n  .help-text {\n    margin-top: 5px;\n    font-size: 0.85rem;\n    color: $text-secondary;\n  }\n}\n\n.input-with-button {\n  display: flex;\n  gap: 10px;\n  \n  input {\n    flex-grow: 1;\n  }\n  \n  button {\n    padding: 10px 15px;\n    background-color: $secondary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    cursor: pointer;\n    font-size: 14px;\n    transition: background-color 0.2s;\n    \n    &:hover {\n      background-color: darken($secondary-color, 10%);\n    }\n  }\n}\n\n.action-buttons {\n  display: flex;\n  justify-content: center;\n  margin: 20px 0;\n\n  .primary-button {\n    padding: 12px 24px;\n    background-color: $primary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    font-size: 16px;\n    font-weight: 500;\n    cursor: pointer;\n    transition: background-color 0.2s;\n    \n    &:hover {\n      background-color: darken($primary-color, 10%);\n    }\n    \n    &:disabled {\n      background-color: lighten($primary-color, 25%);\n      cursor: not-allowed;\n    }\n  }\n}\n\n.result {\n  @include card;\n  margin-top: 20px;\n  \n  h3 {\n    margin-bottom: 10px;\n  }\n  \n  pre {\n    background-color: #f5f5f5;\n    border: 1px solid $border-color;\n    border-radius: 4px;\n    padding: 12px;\n    overflow-x: auto;\n    font-size: 0.9rem;\n    line-height: 1.4;\n    max-height: 300px;\n    overflow-y: auto;\n  }\n  \n  &.success h3 {\n    color: $success-color;\n  }\n  \n  &.error h3 {\n    color: $error-color;\n  }\n}\n\n.info-section {\n  ul {\n    margin-left: 20px;\n    margin-bottom: 16px;\n  }\n  \n  p {\n    margin-bottom: 16px;\n  }\n  \n  .note {\n    margin-top: 15px;\n    padding: 15px;\n    background-color: #f8f8f8;\n    border-left: 4px solid $secondary-color;\n    border-radius: 4px;\n    \n    p {\n      margin-bottom: 10px;\n    }\n    \n    pre {\n      background-color: #eee;\n      padding: 10px;\n      border-radius: 4px;\n      overflow-x: auto;\n      margin-bottom: 15px;\n      \n      code {\n        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;\n        font-size: 0.9em;\n      }\n    }\n  }\n}\n\n.repo-selection {\n  margin-bottom: 20px;\n  \n  .repo-selection-buttons {\n    display: flex;\n    gap: 10px;\n    margin-bottom: 15px;\n    \n    button {\n      flex: 1;\n      padding: 10px;\n      border: 1px solid $border-color;\n      border-radius: 6px;\n      background-color: $background-color;\n      cursor: pointer;\n      transition: all 0.2s ease;\n      \n      &.selected {\n        background-color: $primary-color;\n        color: white;\n        border-color: $primary-color;\n      }\n      \n      &:hover:not(.selected) {\n        background-color: #eaeaea;\n      }\n    }\n  }\n}\n\n.clone-actions {\n  margin: 20px 0;\n  \n  .clone-button {\n    background-color: $secondary-color;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    padding: 10px 20px;\n    font-size: 1rem;\n    cursor: pointer;\n    transition: background-color 0.2s;\n    \n    &:hover:not(:disabled) {\n      background-color: darken($secondary-color, 10%);\n    }\n    \n    &:disabled {\n      opacity: 0.6;\n      cursor: not-allowed;\n    }\n  }\n}\n\n.footer {\n  text-align: center;\n  margin-top: 30px;\n  padding: 20px 0;\n  border-top: 1px solid $border-color;\n  color: $text-secondary;\n  font-size: 0.9rem;\n  \n  a {\n    color: $primary-color;\n    text-decoration: none;\n    \n    &:hover {\n      text-decoration: underline;\n    }\n  }\n}\n","* {\n  box-sizing: border-box;\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n  background-color: #f5f5f7;\n  color: #333;\n  line-height: 1.6;\n}\n\n.app {\n  max-width: 900px;\n  margin: 0 auto;\n  padding: 20px;\n}\n\n.header {\n  text-align: center;\n  margin-bottom: 30px;\n}\n.header h1 {\n  color: #0066cc;\n  font-size: 2.2rem;\n  margin-bottom: 8px;\n}\n.header .subtitle {\n  color: #666;\n  font-size: 1.1rem;\n}\n\n.main {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n\n.section {\n  background-color: #fff;\n  border-radius: 10px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  padding: 20px;\n  margin-bottom: 20px;\n}\n.section h2 {\n  margin-bottom: 16px;\n  color: #333;\n  border-bottom: 1px solid #d1d1d6;\n  padding-bottom: 8px;\n}\n\n.form-group {\n  margin-bottom: 16px;\n}\n.form-group label {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 500;\n}\n.form-group input, .form-group textarea {\n  width: 100%;\n  padding: 10px;\n  border: 1px solid #d1d1d6;\n  border-radius: 6px;\n  font-size: 14px;\n}\n.form-group input:focus, .form-group textarea:focus {\n  border-color: #0066cc;\n  outline: none;\n  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);\n}\n.form-group .help-text {\n  margin-top: 5px;\n  font-size: 0.85rem;\n  color: #666;\n}\n\n.input-with-button {\n  display: flex;\n  gap: 10px;\n}\n.input-with-button input {\n  flex-grow: 1;\n}\n.input-with-button button {\n  padding: 10px 15px;\n  background-color: #5e5ce6;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 14px;\n  transition: background-color 0.2s;\n}\n.input-with-button button:hover {\n  background-color: rgb(50.3244680851, 47.7819148936, 223.2180851064);\n}\n\n.action-buttons {\n  display: flex;\n  justify-content: center;\n  margin: 20px 0;\n}\n.action-buttons .primary-button {\n  padding: 12px 24px;\n  background-color: #0066cc;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  font-size: 16px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: background-color 0.2s;\n}\n.action-buttons .primary-button:hover {\n  background-color: rgb(0, 76.5, 153);\n}\n.action-buttons .primary-button:disabled {\n  background-color: rgb(76.5, 165.75, 255);\n  cursor: not-allowed;\n}\n\n.result {\n  background-color: #fff;\n  border-radius: 10px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  padding: 20px;\n  margin-bottom: 20px;\n  margin-top: 20px;\n}\n.result h3 {\n  margin-bottom: 10px;\n}\n.result pre {\n  background-color: #f5f5f5;\n  border: 1px solid #d1d1d6;\n  border-radius: 4px;\n  padding: 12px;\n  overflow-x: auto;\n  font-size: 0.9rem;\n  line-height: 1.4;\n  max-height: 300px;\n  overflow-y: auto;\n}\n.result.success h3 {\n  color: #34c759;\n}\n.result.error h3 {\n  color: #ff3b30;\n}\n\n.info-section ul {\n  margin-left: 20px;\n  margin-bottom: 16px;\n}\n.info-section p {\n  margin-bottom: 16px;\n}\n.info-section .note {\n  margin-top: 15px;\n  padding: 15px;\n  background-color: #f8f8f8;\n  border-left: 4px solid #5e5ce6;\n  border-radius: 4px;\n}\n.info-section .note p {\n  margin-bottom: 10px;\n}\n.info-section .note pre {\n  background-color: #eee;\n  padding: 10px;\n  border-radius: 4px;\n  overflow-x: auto;\n  margin-bottom: 15px;\n}\n.info-section .note pre code {\n  font-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace;\n  font-size: 0.9em;\n}\n\n.repo-selection {\n  margin-bottom: 20px;\n}\n.repo-selection .repo-selection-buttons {\n  display: flex;\n  gap: 10px;\n  margin-bottom: 15px;\n}\n.repo-selection .repo-selection-buttons button {\n  flex: 1;\n  padding: 10px;\n  border: 1px solid #d1d1d6;\n  border-radius: 6px;\n  background-color: #f5f5f7;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.repo-selection .repo-selection-buttons button.selected {\n  background-color: #0066cc;\n  color: white;\n  border-color: #0066cc;\n}\n.repo-selection .repo-selection-buttons button:hover:not(.selected) {\n  background-color: #eaeaea;\n}\n\n.clone-actions {\n  margin: 20px 0;\n}\n.clone-actions .clone-button {\n  background-color: #5e5ce6;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  padding: 10px 20px;\n  font-size: 1rem;\n  cursor: pointer;\n  transition: background-color 0.2s;\n}\n.clone-actions .clone-button:hover:not(:disabled) {\n  background-color: rgb(50.3244680851, 47.7819148936, 223.2180851064);\n}\n.clone-actions .clone-button:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.footer {\n  text-align: center;\n  margin-top: 30px;\n  padding: 20px 0;\n  border-top: 1px solid #d1d1d6;\n  color: #666;\n  font-size: 0.9rem;\n}\n.footer a {\n  color: #0066cc;\n  text-decoration: none;\n}\n.footer a:hover {\n  text-decoration: underline;\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -28037,17 +28149,61 @@ __webpack_require__(/*! ./styles/App.scss */ "./src/renderer/styles/App.scss");
 const App = () => {
     // State
     const [repoPath, setRepoPath] = (0, react_1.useState)('');
+    const [repoUrl, setRepoUrl] = (0, react_1.useState)('');
+    const [targetDir, setTargetDir] = (0, react_1.useState)('');
     const [bfgPath, setBfgPath] = (0, react_1.useState)('');
     const [replacements, setReplacements] = (0, react_1.useState)('');
     const [fileSizes, setFileSizes] = (0, react_1.useState)('');
     const [isProcessing, setIsProcessing] = (0, react_1.useState)(false);
+    const [isCloning, setIsCloning] = (0, react_1.useState)(false);
     const [result, setResult] = (0, react_1.useState)(null);
     const [error, setError] = (0, react_1.useState)(null);
+    const [useExistingRepo, setUseExistingRepo] = (0, react_1.useState)(true);
     // Handle selecting repository folder
     const handleSelectRepo = () => __awaiter(void 0, void 0, void 0, function* () {
         const result = yield window.electronAPI.selectRepository();
         if (!result.canceled && result.filePaths.length > 0) {
             setRepoPath(result.filePaths[0]);
+        }
+    });
+    // Handle selecting target directory for cloning
+    const handleSelectCloneDirectory = () => __awaiter(void 0, void 0, void 0, function* () {
+        const result = yield window.electronAPI.selectCloneDirectory();
+        if (!result.canceled && result.filePaths.length > 0) {
+            setTargetDir(result.filePaths[0]);
+        }
+    });
+    // Handle cloning repository
+    const handleCloneRepository = () => __awaiter(void 0, void 0, void 0, function* () {
+        if (!repoUrl || !targetDir) {
+            setError('Please provide both repository URL and target directory.');
+            return;
+        }
+        try {
+            setIsCloning(true);
+            setResult(null);
+            setError(null);
+            // Call the main process to clone the repository
+            const response = yield window.electronAPI.cloneRepository({
+                repoUrl,
+                targetDir
+            });
+            if (response.success) {
+                setResult(`${response.message}\n\n${response.output || ''}`);
+                // Set the repository path to the cloned repository
+                if (response.repoPath) {
+                    setRepoPath(response.repoPath);
+                }
+            }
+            else {
+                setError(`${response.message}\n${response.error || ''}`);
+            }
+        }
+        catch (err) {
+            setError(`An unexpected error occurred while cloning: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        finally {
+            setIsCloning(false);
         }
     });
     // Handle selecting BFG jar file
@@ -28061,6 +28217,11 @@ const App = () => {
     const handleCleanRepository = () => __awaiter(void 0, void 0, void 0, function* () {
         if (!repoPath || !bfgPath) {
             setError('Please select both a repository path and the BFG jar file path.');
+            return;
+        }
+        // If we're in clone mode and haven't cloned yet, show an error
+        if (!useExistingRepo && !repoPath) {
+            setError('Please clone the repository first.');
             return;
         }
         try {
@@ -28100,11 +28261,28 @@ const App = () => {
         react_1.default.createElement("div", { className: "main" },
             react_1.default.createElement("section", { className: "section" },
                 react_1.default.createElement("h2", null, "Repository Settings"),
-                react_1.default.createElement("div", { className: "form-group" },
+                react_1.default.createElement("div", { className: "repo-selection" },
+                    react_1.default.createElement("div", { className: "repo-selection-buttons" },
+                        react_1.default.createElement("button", { className: useExistingRepo ? 'selected' : '', onClick: () => setUseExistingRepo(true) }, "Use Existing Repository"),
+                        react_1.default.createElement("button", { className: !useExistingRepo ? 'selected' : '', onClick: () => setUseExistingRepo(false) }, "Clone Repository with --mirror"))),
+                useExistingRepo ? (react_1.default.createElement("div", { className: "form-group" },
                     react_1.default.createElement("label", null, "Git Repository Path:"),
                     react_1.default.createElement("div", { className: "input-with-button" },
                         react_1.default.createElement("input", { type: "text", value: repoPath, onChange: (e) => setRepoPath(e.target.value), placeholder: "Select or enter git repository path" }),
-                        react_1.default.createElement("button", { onClick: handleSelectRepo }, "Browse"))),
+                        react_1.default.createElement("button", { onClick: handleSelectRepo }, "Browse")),
+                    react_1.default.createElement("p", { className: "help-text" }, "Select an existing Git repository on your machine"))) : (react_1.default.createElement(react_1.default.Fragment, null,
+                    react_1.default.createElement("div", { className: "form-group" },
+                        react_1.default.createElement("label", null, "Git Repository URL:"),
+                        react_1.default.createElement("input", { type: "text", value: repoUrl, onChange: (e) => setRepoUrl(e.target.value), placeholder: "https://github.com/username/repository.git" }),
+                        react_1.default.createElement("p", { className: "help-text" }, "Enter the URL of the Git repository to clone")),
+                    react_1.default.createElement("div", { className: "form-group" },
+                        react_1.default.createElement("label", null, "Target Directory:"),
+                        react_1.default.createElement("div", { className: "input-with-button" },
+                            react_1.default.createElement("input", { type: "text", value: targetDir, onChange: (e) => setTargetDir(e.target.value), placeholder: "Select directory to clone into" }),
+                            react_1.default.createElement("button", { onClick: handleSelectCloneDirectory }, "Browse")),
+                        react_1.default.createElement("p", { className: "help-text" }, "Select where to clone the repository")),
+                    react_1.default.createElement("div", { className: "clone-actions" },
+                        react_1.default.createElement("button", { className: "clone-button", onClick: handleCloneRepository, disabled: isCloning || !repoUrl || !targetDir }, isCloning ? 'Cloning...' : 'Clone Repository with --mirror')))),
                 react_1.default.createElement("div", { className: "form-group" },
                     react_1.default.createElement("label", null, "BFG JAR File Path:"),
                     react_1.default.createElement("div", { className: "input-with-button" },
@@ -28126,7 +28304,7 @@ const App = () => {
                     react_1.default.createElement("input", { type: "text", value: fileSizes, onChange: (e) => setFileSizes(e.target.value), placeholder: "e.g., 50M, 10K" }),
                     react_1.default.createElement("p", { className: "help-text" }, "Examples: 10M (10 megabytes), 1K (1 kilobyte)"))),
             react_1.default.createElement("div", { className: "action-buttons" },
-                react_1.default.createElement("button", { className: "primary-button", onClick: handleCleanRepository, disabled: isProcessing || !repoPath || !bfgPath }, isProcessing ? 'Cleaning Repository...' : 'Clean Repository')),
+                react_1.default.createElement("button", { className: "primary-button", onClick: handleCleanRepository, disabled: isProcessing || !bfgPath || (!useExistingRepo && !repoPath) || (useExistingRepo && !repoPath) }, isProcessing ? 'Cleaning Repository...' : 'Clean Repository')),
             error && (react_1.default.createElement("div", { className: "result error" },
                 react_1.default.createElement("h3", null, "Error"),
                 react_1.default.createElement("pre", null, error))),
@@ -28140,9 +28318,13 @@ const App = () => {
                     react_1.default.createElement("li", null, "Remove Crazy Big Files"),
                     react_1.default.createElement("li", null, "Remove Passwords, Credentials & other Private data")),
                 react_1.default.createElement("p", null, "The BFG is typically 10-720x faster than git-filter-branch, and is well tested with the major Git providers."),
-                react_1.default.createElement("p", { className: "note" },
-                    "Note: After cleaning, run ",
-                    react_1.default.createElement("code", null, "cd your-repo && git reflog expire --expire=now --all && git gc --prune=now --aggressive")))),
+                react_1.default.createElement("div", { className: "note" },
+                    react_1.default.createElement("p", null, "Note: After cleaning, run the following commands:"),
+                    react_1.default.createElement("pre", null,
+                        react_1.default.createElement("code", null, "cd your-repo git reflog expire --expire=now --all git gc --prune=now --aggressive")),
+                    react_1.default.createElement("p", null, "For mirrored repositories, also run:"),
+                    react_1.default.createElement("pre", null,
+                        react_1.default.createElement("code", null, "cd your-original-repo git remote add origin /path/to/your/mirror.git git push origin --force"))))),
         react_1.default.createElement("footer", { className: "footer" },
             react_1.default.createElement("p", null,
                 "BFG Repo-Cleaner GUI \u00A9 2025 | ",

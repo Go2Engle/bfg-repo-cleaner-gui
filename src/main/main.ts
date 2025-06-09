@@ -129,3 +129,55 @@ ipcMain.handle('select-bfg-jar', async () => {
   
   return result;
 });
+
+// Handle cloning a repository with --mirror
+ipcMain.handle('clone-repository', async (event, options) => {
+  try {
+    const { repoUrl, targetDir } = options;
+    
+    if (!repoUrl) {
+      return { success: false, message: 'Repository URL is required' };
+    }
+
+    // Create target directory if it doesn't exist
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+    
+    // Generate a directory name based on the repo URL
+    const repoName = repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'cloned-repo';
+    const cloneDir = path.join(targetDir, `${repoName}.git`);
+    
+    // Construct the git clone command with --mirror
+    const command = `git clone --mirror "${repoUrl}" "${cloneDir}"`;
+    
+    // Execute the command
+    const { stdout, stderr } = await execPromise(command);
+    
+    return {
+      success: true,
+      message: 'Repository cloned successfully with --mirror',
+      output: stdout,
+      repoPath: cloneDir,
+      error: stderr
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Error cloning repository',
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
+});
+
+// Handle directory selection for clone target
+ipcMain.handle('select-clone-directory', async () => {
+  if (!mainWindow) return { canceled: true };
+  
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+    title: 'Select Directory to Clone Repository Into'
+  });
+  
+  return result;
+});

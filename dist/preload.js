@@ -54,6 +54,8 @@ const electron_1 = __webpack_require__(/*! electron */ "electron");
 electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     selectRepository: () => electron_1.ipcRenderer.invoke('select-repository'),
     selectBfgJar: () => electron_1.ipcRenderer.invoke('select-bfg-jar'),
+    selectCloneDirectory: () => electron_1.ipcRenderer.invoke('select-clone-directory'),
+    cloneRepository: (options) => electron_1.ipcRenderer.invoke('clone-repository', options),
     cleanRepository: (options) => electron_1.ipcRenderer.invoke('clean-repository', options)
 });
 

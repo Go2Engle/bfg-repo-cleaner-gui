@@ -191,16 +191,81 @@ $text-secondary: #666;
   }
   
   .note {
-    background-color: #fff9e6;
-    border-left: 4px solid #ffc107;
-    padding: 12px;
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-left: 4px solid $secondary-color;
     border-radius: 4px;
     
-    code {
-      background-color: rgba(0, 0, 0, 0.05);
-      padding: 2px 4px;
-      border-radius: 3px;
-      font-family: Consolas, Monaco, 'Andale Mono', monospace;
+    p {
+      margin-bottom: 10px;
+    }
+    
+    pre {
+      background-color: #eee;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin-bottom: 15px;
+      
+      code {
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        font-size: 0.9em;
+      }
+    }
+  }
+}
+
+.repo-selection {
+  margin-bottom: 20px;
+  
+  .repo-selection-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    
+    button {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid $border-color;
+      border-radius: 6px;
+      background-color: $background-color;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &.selected {
+        background-color: $primary-color;
+        color: white;
+        border-color: $primary-color;
+      }
+      
+      &:hover:not(.selected) {
+        background-color: #eaeaea;
+      }
+    }
+  }
+}
+
+.clone-actions {
+  margin: 20px 0;
+  
+  .clone-button {
+    background-color: $secondary-color;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover:not(:disabled) {
+      background-color: darken($secondary-color, 10%);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 }

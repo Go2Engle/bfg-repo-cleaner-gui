@@ -5,6 +5,11 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('electronAPI', {
   selectRepository: () => ipcRenderer.invoke('select-repository'),
   selectBfgJar: () => ipcRenderer.invoke('select-bfg-jar'),
+  selectCloneDirectory: () => ipcRenderer.invoke('select-clone-directory'),
+  cloneRepository: (options: {
+    repoUrl: string;
+    targetDir: string;
+  }) => ipcRenderer.invoke('clone-repository', options),
   cleanRepository: (options: {
     repoPath: string;
     bfgPath: string;

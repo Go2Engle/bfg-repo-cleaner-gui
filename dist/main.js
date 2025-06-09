@@ -1055,6 +1055,51 @@ electron_1.ipcMain.handle('select-bfg-jar', () => __awaiter(void 0, void 0, void
     });
     return result;
 }));
+// Handle cloning a repository with --mirror
+electron_1.ipcMain.handle('clone-repository', (event, options) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { repoUrl, targetDir } = options;
+        if (!repoUrl) {
+            return { success: false, message: 'Repository URL is required' };
+        }
+        // Create target directory if it doesn't exist
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, { recursive: true });
+        }
+        // Generate a directory name based on the repo URL
+        const repoName = ((_a = repoUrl.split('/').pop()) === null || _a === void 0 ? void 0 : _a.replace(/\.git$/, '')) || 'cloned-repo';
+        const cloneDir = path.join(targetDir, `${repoName}.git`);
+        // Construct the git clone command with --mirror
+        const command = `git clone --mirror "${repoUrl}" "${cloneDir}"`;
+        // Execute the command
+        const { stdout, stderr } = yield execPromise(command);
+        return {
+            success: true,
+            message: 'Repository cloned successfully with --mirror',
+            output: stdout,
+            repoPath: cloneDir,
+            error: stderr
+        };
+    }
+    catch (error) {
+        return {
+            success: false,
+            message: 'Error cloning repository',
+            error: error instanceof Error ? error.message : String(error)
+        };
+    }
+}));
+// Handle directory selection for clone target
+electron_1.ipcMain.handle('select-clone-directory', () => __awaiter(void 0, void 0, void 0, function* () {
+    if (!mainWindow)
+        return { canceled: true };
+    const result = yield electron_1.dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory'],
+        title: 'Select Directory to Clone Repository Into'
+    });
+    return result;
+}));
 
 
 /***/ }),
