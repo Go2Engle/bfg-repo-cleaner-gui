@@ -73,6 +73,14 @@ To create a new release:
 6. Click "Clean Repository"
 7. Follow any additional instructions provided in the output
 
+### macOS Security Notice
+
+If you're using macOS and encounter security restrictions when launching the application, you may need to remove the quarantine attribute with the following command:
+
+```bash
+sudo xattr -rd com.apple.quarantine "/Applications/bfg-repo-cleaner-gui.app"
+```
+
 ## Important Note
 
 After cleaning your repository with BFG, you should run:
