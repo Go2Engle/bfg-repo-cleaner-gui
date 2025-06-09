@@ -47,6 +47,22 @@ npm run package
 npm run make
 ```
 
+## CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- When a new release is created on GitHub, the workflow automatically:
+  - Builds the application for macOS (x64 and arm64), Windows, and Linux
+  - Creates installers and packages for each platform
+  - Uploads the built artifacts to the GitHub release
+
+To create a new release:
+
+1. Tag your commit: `git tag v1.0.0`
+2. Push the tag: `git push origin v1.0.0`
+3. Create a new release on GitHub using this tag
+4. The GitHub Actions workflow will automatically build and attach the artifacts to the release
+
 ## Usage
 
 1. Download and save the BFG Repo-Cleaner JAR file (e.g., `bfg-1.14.0.jar`) from the [official website](https://rtyley.github.io/bfg-repo-cleaner/)
