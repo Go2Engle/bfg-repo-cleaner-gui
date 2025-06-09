@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './styles/App.scss';
+import { ThemeProvider } from './context/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 
 // Define the type for the window.electronAPI
 declare global {
@@ -48,7 +50,7 @@ declare global {
   }
 }
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   // State
   const [repoPath, setRepoPath] = useState<string>('');
   const [repoUrl, setRepoUrl] = useState<string>('');
@@ -247,6 +249,7 @@ const App: React.FC = () => {
       <header className="header">
         <h1>BFG Repo-Cleaner GUI</h1>
         <p className="subtitle">Clean your Git repository of large files & sensitive data</p>
+        <ThemeToggle />
       </header>
 
       <div className="main">
@@ -423,6 +426,14 @@ const App: React.FC = () => {
         <p>BFG Repo-Cleaner GUI © 2025 | <a href="https://github.com/rtyley/bfg-repo-cleaner" target="_blank" rel="noopener noreferrer">BFG Documentation</a></p>
       </footer>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 };
 
