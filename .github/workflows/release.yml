@@ -15,9 +15,9 @@ jobs:
   build:
     name: Build and Upload
     
-    # Add a job to extract version from package.json
+    # Use release tag for reference
     env:
-      APP_VERSION: ${{ github.event.release.tag_name }}
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -81,11 +81,21 @@ jobs:
             exit 1
           fi
 
-      - name: Get version from package.json
-        id: get-version
+      - name: Get version from package.json (Unix)
+        if: matrix.platform != 'win'
+        id: get-version-unix
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Package version: $VERSION"
+          
+      - name: Get version from package.json (Windows)
+        if: matrix.platform == 'win'
+        id: get-version-win
+        shell: powershell
+        run: |
+          $VERSION = (node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $env:GITHUB_OUTPUT
           echo "Package version: $VERSION"
 
       - name: Check for macOS archive
@@ -93,7 +103,7 @@ jobs:
         id: check-mac-archive
         run: |
           arch="${{ steps.mac-arch.outputs.arch }}"
-          VERSION="${{ steps.get-version.outputs.version }}"
+          VERSION="${{ steps.get-version-unix.outputs.version }}"
           echo "Checking for macOS $arch archive with version $VERSION"
           find ./out -type f -name "*.zip" | sort
           if [ -f "./out/make/zip/darwin/$arch/bfg-repo-cleaner-gui-darwin-$arch-$VERSION.zip" ]; then
@@ -109,7 +119,7 @@ jobs:
         if: matrix.platform == 'mac' && steps.check-mac-archive.outputs.exists == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: ./out/make/zip/darwin/${{ steps.mac-arch.outputs.arch }}/bfg-repo-cleaner-gui-darwin-${{ steps.mac-arch.outputs.arch }}-${{ steps.get-version.outputs.version }}.zip
+          files: ./out/make/zip/darwin/${{ steps.mac-arch.outputs.arch }}/bfg-repo-cleaner-gui-darwin-${{ steps.mac-arch.outputs.arch }}-${{ steps.get-version-unix.outputs.version }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -118,8 +128,8 @@ jobs:
         id: check-win-artifact
         shell: powershell
         run: |
-          # Get version from package.json
-          $VERSION = (Get-Content -Raw -Path "./package.json" | ConvertFrom-Json).version
+          # Use the version from the previous step
+          $VERSION = "${{ steps.get-version-win.outputs.version }}"
           Write-Host "Package version: $VERSION"
           
           Write-Host "Checking for Windows installer"
@@ -160,7 +170,7 @@ jobs:
         if: matrix.platform == 'linux'
         id: check-linux-deb
         run: |
-          VERSION="${{ steps.get-version.outputs.version }}"
+          VERSION="${{ steps.get-version-unix.outputs.version }}"
           echo "Checking for Linux deb package with version $VERSION"
           if test -f "./out/make/deb/x64/bfg-repo-cleaner-gui_${VERSION}_amd64.deb"; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -175,7 +185,7 @@ jobs:
         if: matrix.platform == 'linux' && steps.check-linux-deb.outputs.exists == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: ./out/make/deb/x64/bfg-repo-cleaner-gui_${{ steps.get-version.outputs.version }}_amd64.deb
+          files: ./out/make/deb/x64/bfg-repo-cleaner-gui_${{ steps.get-version-unix.outputs.version }}_amd64.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -183,7 +193,7 @@ jobs:
         if: matrix.platform == 'linux'
         id: check-linux-rpm
         run: |
-          VERSION="${{ steps.get-version.outputs.version }}"
+          VERSION="${{ steps.get-version-unix.outputs.version }}"
           echo "Checking for Linux rpm package with version $VERSION"
           if test -f "./out/make/rpm/x64/bfg-repo-cleaner-gui-${VERSION}-1.x86_64.rpm"; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -198,6 +208,6 @@ jobs:
         if: matrix.platform == 'linux' && steps.check-linux-rpm.outputs.exists == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: ./out/make/rpm/x64/bfg-repo-cleaner-gui-${{ steps.get-version.outputs.version }}-1.x86_64.rpm
+          files: ./out/make/rpm/x64/bfg-repo-cleaner-gui-${{ steps.get-version-unix.outputs.version }}-1.x86_64.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
