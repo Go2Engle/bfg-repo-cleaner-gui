@@ -12,7 +12,8 @@
     "make": "webpack --mode production && electron-forge make",
     "make-all": "webpack --mode production && node scripts/build-all-platforms.js",
     "publish": "webpack --mode production && electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "lint": "echo \"No linting configured\"",
+    "generate-icons": "node scripts/generate-icons.js"
   },
   "keywords": [],
   "author": {
@@ -43,6 +44,7 @@
     "@electron/fuses": "^1.8.0",
     "css-loader": "^7.1.2",
     "electron": "36.4.0",
+    "electron-icon-maker": "^0.0.5",
     "electron-reload": "^2.0.0-alpha.1",
     "html-webpack-plugin": "^5.6.3",
     "sass": "^1.89.1",
