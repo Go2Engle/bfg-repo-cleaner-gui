@@ -1,0 +1,103 @@
+name: Manual Upload Release Assets
+
+# This workflow can be manually triggered when the automated release workflow fails
+on:
+  workflow_dispatch:
+    inputs:
+      releaseTag:
+        description: 'Release tag to upload assets for'
+        required: true
+        default: 'v1.0.0'
+      assetPath:
+        description: 'Path to the asset file to upload (from the repo root)'
+        required: true
+        default: './out/make/zip/darwin/arm64/bfg-repo-cleaner-gui-darwin-arm64-1.0.0.zip'
+      assetName:
+        description: 'Asset name that will appear in the release'
+        required: true
+        default: 'bfg-repo-cleaner-gui-mac-arm64.zip'
+
+# Add explicit permissions
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  upload:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Find the release by tag
+      - name: Get Release
+        id: get_release
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = "${{ github.event.inputs.releaseTag }}";
+            
+            console.log(`Looking for release with tag ${tag}`);
+            
+            try {
+              const response = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tag
+              });
+              
+              console.log(`Found release: ${response.data.name} (ID: ${response.data.id})`);
+              
+              return {
+                id: response.data.id,
+                upload_url: response.data.upload_url
+              };
+            } catch (error) {
+              console.error(`Error finding release: ${error.message}`);
+              core.setFailed(`Failed to find release with tag ${tag}`);
+              return null;
+            }
+
+      # Upload the specific asset
+      - name: Upload Release Asset
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            const assetPath = "${{ github.event.inputs.assetPath }}";
+            const assetName = "${{ github.event.inputs.assetName }}";
+            const releaseId = ${{ steps.get_release.outputs.result }}.id;
+            
+            console.log(`Uploading ${assetPath} as ${assetName} to release ID ${releaseId}`);
+            
+            try {
+              const contentType = assetName.endsWith('.zip') ? 'application/zip' 
+                : assetName.endsWith('.exe') ? 'application/octet-stream'
+                : assetName.endsWith('.deb') ? 'application/vnd.debian.binary-package'
+                : assetName.endsWith('.rpm') ? 'application/x-rpm'
+                : 'application/octet-stream';
+                
+              const fileContent = fs.readFileSync(assetPath);
+              
+              const response = await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: releaseId,
+                name: assetName,
+                data: fileContent,
+                headers: {
+                  'content-type': contentType,
+                  'content-length': fileContent.length
+                }
+              });
+              
+              console.log(`Successfully uploaded ${assetName} (ID: ${response.data.id})`);
+            } catch (error) {
+              console.error(`Error uploading asset: ${error.message}`);
+              core.setFailed(`Failed to upload ${assetName}: ${error.message}`);
+            }

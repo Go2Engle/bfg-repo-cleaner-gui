@@ -4,6 +4,13 @@ on:
   release:
     types: [created]
 
+# Add explicit permissions needed for release asset uploads
+permissions:
+  contents: write
+  packages: write
+  issues: read
+  pull-requests: read
+
 jobs:
   build:
     name: Build and Upload
@@ -79,39 +86,50 @@ jobs:
 
       - name: Upload macOS artifacts
         if: matrix.platform == 'mac' && steps.check-mac-archive.outputs.exists == 'true'
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./out/make/zip/darwin/${{ steps.mac-arch.outputs.arch }}/bfg-repo-cleaner-gui-darwin-${{ steps.mac-arch.outputs.arch }}-1.0.0.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./out/make/zip/darwin/${{ steps.mac-arch.outputs.arch }}/bfg-repo-cleaner-gui-darwin-${{ steps.mac-arch.outputs.arch }}-1.0.0.zip
-          asset_name: bfg-repo-cleaner-gui-mac-${{ steps.mac-arch.outputs.filename_arch }}.zip
-          asset_content_type: application/zip
       
       - name: Check for Windows artifacts
         if: matrix.platform == 'win'
         id: check-win-artifact
+        shell: powershell
         run: |
-          echo "Checking for Windows installer"
-          if test -f "./out/make/squirrel.windows/x64/bfg-repo-cleaner-gui-1.0.0 Setup.exe"; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Installer found"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Installer not found"
-            find ./out/make -type f
-          fi
+          Write-Host "Checking for Windows installer"
+          $installerPath = "./out/make/squirrel.windows/x64/bfg-repo-cleaner-gui-1.0.0 Setup.exe"
+          
+          # Try to find the installer file if it's not in the expected location
+          if (-not (Test-Path -Path $installerPath)) {
+            Write-Host "Installer not found at expected path, searching for it..."
+            $foundFiles = Get-ChildItem -Path "./out" -Recurse -File -Filter "*Setup.exe" | Select-Object -First 1
+            
+            if ($foundFiles) {
+              $installerPath = $foundFiles.FullName
+              Write-Host "Found installer at: $installerPath"
+            } else {
+              Write-Host "No installer files found"
+              Get-ChildItem -Path "./out" -Recurse -File | ForEach-Object { $_.FullName }
+            }
+          }
+          
+          if (Test-Path -Path $installerPath) {
+            echo "exists=true" >> $env:GITHUB_OUTPUT
+            echo "setup_path=$installerPath" >> $env:GITHUB_OUTPUT
+            Write-Host "Installer found at: $installerPath"
+          } else {
+            echo "exists=false" >> $env:GITHUB_OUTPUT
+            Write-Host "Installer not found"
+          }
 
       - name: Upload Windows artifacts
         if: matrix.platform == 'win' && steps.check-win-artifact.outputs.exists == 'true'
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.check-win-artifact.outputs.setup_path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./out/make/squirrel.windows/x64/bfg-repo-cleaner-gui-1.0.0 Setup.exe
-          asset_name: bfg-repo-cleaner-gui-windows-setup.exe
-          asset_content_type: application/octet-stream
       
       - name: Check for Linux Deb artifacts
         if: matrix.platform == 'linux'
@@ -129,14 +147,11 @@ jobs:
 
       - name: Upload Linux Deb artifacts
         if: matrix.platform == 'linux' && steps.check-linux-deb.outputs.exists == 'true'
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./out/make/deb/x64/bfg-repo-cleaner-gui_1.0.0_amd64.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./out/make/deb/x64/bfg-repo-cleaner-gui_1.0.0_amd64.deb
-          asset_name: bfg-repo-cleaner-gui-linux-amd64.deb
-          asset_content_type: application/octet-stream
       
       - name: Check for Linux RPM artifacts
         if: matrix.platform == 'linux'
@@ -154,11 +169,8 @@ jobs:
 
       - name: Upload Linux RPM artifacts
         if: matrix.platform == 'linux' && steps.check-linux-rpm.outputs.exists == 'true'
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./out/make/rpm/x64/bfg-repo-cleaner-gui-1.0.0-1.x86_64.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./out/make/rpm/x64/bfg-repo-cleaner-gui-1.0.0-1.x86_64.rpm
-          asset_name: bfg-repo-cleaner-gui-linux-x86_64.rpm
-          asset_content_type: application/octet-stream
