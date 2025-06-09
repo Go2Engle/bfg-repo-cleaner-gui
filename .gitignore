@@ -90,3 +90,14 @@ typings/
 
 # Electron-Forge
 out/
+
+# Build output
+dist/
+
+# IDE specific files
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# User-specific files
+.DS_Store
