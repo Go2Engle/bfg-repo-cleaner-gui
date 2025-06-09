@@ -58,6 +58,7 @@ const App: React.FC = () => {
   const [fileSizes, setFileSizes] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isCloning, setIsCloning] = useState<boolean>(false);
+  const [cloneStatus, setCloneStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isRunningPostCommands, setIsRunningPostCommands] = useState<boolean>(false);
   const [showPostCleaningOption, setShowPostCleaningOption] = useState<boolean>(false);
   const [isResetting, setIsResetting] = useState<boolean>(false);
@@ -100,13 +101,16 @@ const App: React.FC = () => {
         if (response.repoPath) {
           setRepoPath(response.repoPath);
         }
+        setCloneStatus('success');
       } else {
         setError(
           `${response.message}\n${response.error || ''}`
         );
+        setCloneStatus('error');
       }
     } catch (err) {
       setError(`An unexpected error occurred while cloning: ${err instanceof Error ? err.message : String(err)}`);
+      setCloneStatus('error');
     } finally {
       setIsCloning(false);
     }
@@ -208,7 +212,7 @@ const App: React.FC = () => {
     }
   };
   
-  // Handle reset all fields (except BFG jar path)
+  // Handle reset all fields (except BFG jar path and target directory)
   const handleReset = async () => {
     try {
       setIsResetting(true);
@@ -220,14 +224,15 @@ const App: React.FC = () => {
         });
       }
       
-      // Reset all state variables except bfgPath
+      // Reset all state variables except bfgPath and targetDir
       setRepoPath('');
       setRepoUrl('');
-      setTargetDir('');
+      // Don't clear target directory: setTargetDir('');
       setReplacements('');
       setFileSizes('');
       setResult(null);
       setError(null);
+      setCloneStatus('idle');
       setShowPostCleaningOption(false);
       
     } catch (err) {
@@ -245,12 +250,32 @@ const App: React.FC = () => {
       </header>
 
       <div className="main">
+        <section className="section info-section">
+          <h2>What is BFG Repo-Cleaner?</h2>
+          <p>
+            BFG Repo-Cleaner is a simpler, faster alternative to git-filter-branch for cleansing bad data out of your Git repository history:
+          </p>
+          <ul>
+            <li>Remove Crazy Big Files</li>
+            <li>Remove Passwords, Credentials & other Private data</li>
+          </ul>
+          <p>
+            The BFG is typically 10-720x faster than git-filter-branch, and is well tested with the major Git providers.
+          </p>
+          
+          <div className="important-note">
+            <h3>Important Note:</h3>
+            <p>
+              By default the BFG doesn't modify the contents of your latest commit on your master (or 'HEAD') branch, even though it will clean all the commits before it.
+            </p>
+            <p>
+              That's because your latest commit is likely to be the one that you deploy to production, and a simple deletion of a private credential or a big file is quite likely to result in broken code that no longer has the hard-coded data it expects - you need to fix that, the BFG can't do it for you. Once you've committed your changes- and your latest commit is clean with none of the undesired data in it - you can run the BFG to perform it's simple deletion operations over all your historical commits.
+            </p>
+          </div>
+        </section>
+
         <section className="section">
           <h2>Repository Settings</h2>
-          
-          <div className="repo-selection">
-            <h3>Clone Repository with --mirror</h3>
-          </div>
 
           <div className="form-group">
             <label>Git Repository URL:</label>
@@ -274,16 +299,19 @@ const App: React.FC = () => {
               />
               <button onClick={handleSelectCloneDirectory}>Browse</button>
             </div>
-            <p className="help-text">Select where to clone the repository</p>
+            <p className="help-text">Select where to clone the repository - this should be an empty folder for the tool to work properly</p>
           </div>
           
           <div className="clone-actions">
             <button 
-              className="clone-button"
+              className={`clone-button ${cloneStatus === 'success' ? 'success' : ''} ${cloneStatus === 'error' ? 'error' : ''}`}
               onClick={handleCloneRepository}
-              disabled={isCloning || !repoUrl || !targetDir}
+              disabled={isCloning || !repoUrl || !targetDir || cloneStatus === 'success'}
             >
-              {isCloning ? 'Cloning...' : 'Clone Repository with --mirror'}
+              {isCloning ? 'Cloning...' : 
+               cloneStatus === 'success' ? 'Cloned' : 
+               cloneStatus === 'error' ? 'Error - Try Again' : 
+               'Clone Repository'}
             </button>
           </div>
 
@@ -349,10 +377,14 @@ const App: React.FC = () => {
           
           <button
             className="reset-button"
-            onClick={handleReset}
+            onClick={() => {
+              if (window.confirm('Reset will delete files from the working directory. Continue?')) {
+                handleReset();
+              }
+            }}
             disabled={isProcessing || isRunningPostCommands || isResetting}
           >
-            {isResetting ? 'Resetting...' : 'Reset All Fields'}
+            {isResetting ? 'Resetting...' : 'Reset'}
           </button>
         </div>
         
@@ -385,35 +417,6 @@ const App: React.FC = () => {
             <pre>{result}</pre>
           </div>
         )}
-
-        <section className="section info-section">
-          <h2>What is BFG Repo-Cleaner?</h2>
-          <p>
-            BFG Repo-Cleaner is a simpler, faster alternative to git-filter-branch for cleansing bad data out of your Git repository history:
-          </p>
-          <ul>
-            <li>Remove Crazy Big Files</li>
-            <li>Remove Passwords, Credentials & other Private data</li>
-          </ul>
-          <p>
-            The BFG is typically 10-720x faster than git-filter-branch, and is well tested with the major Git providers.
-          </p>
-          <div className="note">
-            <p>Note: After cleaning, run the following commands:</p>
-            <pre><code>cd your-repo
-git reflog expire --expire=now --all
-git gc --prune=now --aggressive</code></pre>
-            
-            <p>For mirrored repositories, also run:</p>
-            <pre><code>cd your-mirror.git
-git push --mirror</code></pre>
-            
-            <p>Or to push to your original repo:</p>
-            <pre><code>cd your-original-repo
-git remote add origin /path/to/your/mirror.git
-git push origin --force</code></pre>
-          </div>
-        </section>
       </div>
 
       <footer className="footer">

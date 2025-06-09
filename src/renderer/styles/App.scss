@@ -250,7 +250,7 @@ $warning-color: #ff9500;
     padding: 10px 20px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, background-color 0.3s;
     
     &:hover:not(:disabled) {
       background-color: darken($secondary-color, 10%);
@@ -259,6 +259,22 @@ $warning-color: #ff9500;
     &:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+    
+    &.success {
+      background-color: $success-color;
+      
+      &:hover:not(:disabled) {
+        background-color: $success-color;
+      }
+    }
+    
+    &.error {
+      background-color: $error-color;
+      
+      &:hover:not(:disabled) {
+        background-color: darken($error-color, 10%);
+      }
     }
   }
 }
@@ -372,6 +388,30 @@ $warning-color: #ff9500;
     &:disabled {
       background-color: lighten($warning-color, 20%);
       cursor: not-allowed;
+    }
+  }
+}
+
+.important-note {
+  margin-top: 20px;
+  padding: 15px 20px;
+  background-color: rgba($warning-color, 0.1);
+  border-left: 4px solid $warning-color;
+  border-radius: 4px;
+  
+  h3 {
+    color: darken($warning-color, 10%);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+  
+  p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+    
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 }

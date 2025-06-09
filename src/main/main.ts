@@ -253,6 +253,15 @@ ipcMain.handle('reset-and-cleanup', async (event, options) => {
     if (repoPath && fs.existsSync(repoPath)) {
       // Use rimraf or fs.rmSync (Node.js >= 14) to recursively delete the directory
       fs.rmSync(repoPath, { recursive: true, force: true });
+      
+      // Also try to delete any BFG report folders
+      const repoDir = path.dirname(repoPath);
+      const repoName = path.basename(repoPath);
+      const bfgReportPath = path.join(repoDir, `${repoName}.bfg-report`);
+      
+      if (fs.existsSync(bfgReportPath)) {
+        fs.rmSync(bfgReportPath, { recursive: true, force: true });
+      }
     }
     
     return {
