@@ -10,6 +10,7 @@
     "build": "webpack --mode production",
     "package": "webpack --mode production && electron-forge package",
     "make": "webpack --mode production && electron-forge make",
+    "make-all": "webpack --mode production && node scripts/build-all-platforms.js",
     "publish": "webpack --mode production && electron-forge publish",
     "lint": "echo \"No linting configured\""
   },

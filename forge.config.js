@@ -14,7 +14,9 @@ module.exports = {
       OriginalFilename: 'bfg-repo-cleaner-gui.exe',
       ProductName: 'BFG Repo-Cleaner GUI',
       InternalName: 'bfg-repo-cleaner-gui'
-    }
+    },
+    // Use the current platform architecture by default
+    arch: process.arch
   },
   rebuildConfig: {},
   makers: [
@@ -25,6 +27,9 @@ module.exports = {
     {
       name: '@electron-forge/maker-zip',
       platforms: ['darwin'],
+      config: {
+        targets: ['zip'],
+      }
     },
     {
       name: '@electron-forge/maker-deb',

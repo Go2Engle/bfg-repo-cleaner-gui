@@ -34,32 +34,76 @@ jobs:
         run: npm ci
       
       - name: Build and package
-        run: npm run make
+        run: |
+          # For macOS on GitHub Actions, we'll detect the architecture
+          if [[ "${{ matrix.platform }}" == "mac" ]]; then
+            arch=$(uname -m)
+            echo "Building for macOS on $arch architecture"
+            npm run make
+          else
+            # For non-macOS platforms, just use the default make
+            npm run make
+          fi
       
-      - name: Upload macOS artifacts
+      - name: Determine macOS architecture
         if: matrix.platform == 'mac'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./out/make/zip/darwin/x64/bfg-repo-cleaner-gui-darwin-x64-1.0.0.zip
-          asset_name: bfg-repo-cleaner-gui-mac-x64.zip
-          asset_content_type: application/zip
+        id: mac-arch
+        run: |
+          arch=$(uname -m)
+          if [ "$arch" = "x86_64" ]; then
+            echo "arch=x64" >> $GITHUB_OUTPUT
+            echo "filename_arch=x64" >> $GITHUB_OUTPUT
+          elif [ "$arch" = "arm64" ]; then
+            echo "arch=arm64" >> $GITHUB_OUTPUT
+            echo "filename_arch=arm64" >> $GITHUB_OUTPUT
+          else
+            echo "Unknown architecture: $arch"
+            exit 1
+          fi
 
-      - name: Upload macOS arm64 artifacts
+      - name: Check for macOS archive
         if: matrix.platform == 'mac'
+        id: check-mac-archive
+        run: |
+          arch="${{ steps.mac-arch.outputs.arch }}"
+          echo "Checking for macOS $arch archive"
+          find ./out -type f -name "*.zip" | sort
+          if [ -f "./out/make/zip/darwin/$arch/bfg-repo-cleaner-gui-darwin-$arch-1.0.0.zip" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Archive found: ./out/make/zip/darwin/$arch/bfg-repo-cleaner-gui-darwin-$arch-1.0.0.zip"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Archive not found for $arch"
+            find ./out/make -type f
+          fi
+
+      - name: Upload macOS artifacts
+        if: matrix.platform == 'mac' && steps.check-mac-archive.outputs.exists == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./out/make/zip/darwin/arm64/bfg-repo-cleaner-gui-darwin-arm64-1.0.0.zip
-          asset_name: bfg-repo-cleaner-gui-mac-arm64.zip
+          asset_path: ./out/make/zip/darwin/${{ steps.mac-arch.outputs.arch }}/bfg-repo-cleaner-gui-darwin-${{ steps.mac-arch.outputs.arch }}-1.0.0.zip
+          asset_name: bfg-repo-cleaner-gui-mac-${{ steps.mac-arch.outputs.filename_arch }}.zip
           asset_content_type: application/zip
       
-      - name: Upload Windows artifacts
+      - name: Check for Windows artifacts
         if: matrix.platform == 'win'
+        id: check-win-artifact
+        run: |
+          echo "Checking for Windows installer"
+          if test -f "./out/make/squirrel.windows/x64/bfg-repo-cleaner-gui-1.0.0 Setup.exe"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Installer found"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Installer not found"
+            find ./out/make -type f
+          fi
+
+      - name: Upload Windows artifacts
+        if: matrix.platform == 'win' && steps.check-win-artifact.outputs.exists == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,8 +113,22 @@ jobs:
           asset_name: bfg-repo-cleaner-gui-windows-setup.exe
           asset_content_type: application/octet-stream
       
-      - name: Upload Linux Deb artifacts
+      - name: Check for Linux Deb artifacts
         if: matrix.platform == 'linux'
+        id: check-linux-deb
+        run: |
+          echo "Checking for Linux deb package"
+          if test -f "./out/make/deb/x64/bfg-repo-cleaner-gui_1.0.0_amd64.deb"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Deb package found"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Deb package not found"
+            find ./out/make -type f
+          fi
+
+      - name: Upload Linux Deb artifacts
+        if: matrix.platform == 'linux' && steps.check-linux-deb.outputs.exists == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,8 +138,22 @@ jobs:
           asset_name: bfg-repo-cleaner-gui-linux-amd64.deb
           asset_content_type: application/octet-stream
       
-      - name: Upload Linux RPM artifacts
+      - name: Check for Linux RPM artifacts
         if: matrix.platform == 'linux'
+        id: check-linux-rpm
+        run: |
+          echo "Checking for Linux rpm package"
+          if test -f "./out/make/rpm/x64/bfg-repo-cleaner-gui-1.0.0-1.x86_64.rpm"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "RPM package found"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "RPM package not found"
+            find ./out/make -type f
+          fi
+
+      - name: Upload Linux RPM artifacts
+        if: matrix.platform == 'linux' && steps.check-linux-rpm.outputs.exists == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
