@@ -191,19 +191,52 @@ ipcMain.handle('run-post-cleaning-commands', async (event, options) => {
       return { success: false, message: 'Repository path does not exist' };
     }
     
-    // Change directory to the repository and run the commands
-    const command = `cd "${repoPath}" && git reflog expire --expire=now --all && git gc --prune=now --aggressive && git push`;
+    console.log(`Running post-cleaning commands in path: ${repoPath}`);
     
-    // Execute the command
-    const { stdout, stderr } = await execPromise(command);
+    // Split the commands to execute them one by one for better error handling
+    // First, run git reflog expire
+    let reflogCommand = `cd "${repoPath}" && git reflog expire --expire=now --all`;
+    console.log(`Executing command: ${reflogCommand}`);
+    const reflogResult = await execPromise(reflogCommand);
+    console.log('Reflog result:', reflogResult.stdout, reflogResult.stderr);
+    
+    // Then run git gc
+    let gcCommand = `cd "${repoPath}" && git gc --prune=now --aggressive`;
+    console.log(`Executing command: ${gcCommand}`);
+    const gcResult = await execPromise(gcCommand);
+    console.log('GC result:', gcResult.stdout, gcResult.stderr);
+    
+    // For push, we need to handle the case of no remote configured
+    // First check if origin exists
+    let checkOriginCommand = `cd "${repoPath}" && git remote -v`;
+    const checkOriginResult = await execPromise(checkOriginCommand);
+    console.log('Remote check result:', checkOriginResult.stdout);
+    
+    let pushOutput = '';
+    if (checkOriginResult.stdout.includes('origin')) {
+      // Use --mirror for push since we cloned with --mirror
+      let pushCommand = `cd "${repoPath}" && git push --mirror`;
+      console.log(`Executing command: ${pushCommand}`);
+      try {
+        const pushResult = await execPromise(pushCommand);
+        pushOutput = `Push result: ${pushResult.stdout || 'Success!'}\n${pushResult.stderr || ''}`;
+        console.log('Push result:', pushResult.stdout, pushResult.stderr);
+      } catch (pushError) {
+        pushOutput = `Push failed: ${pushError instanceof Error ? pushError.message : String(pushError)}`;
+        console.error('Push error:', pushOutput);
+      }
+    } else {
+      pushOutput = 'Skipped push: No origin remote configured.';
+      console.log(pushOutput);
+    }
     
     return {
       success: true,
       message: 'Post-cleaning commands executed successfully',
-      output: stdout,
-      error: stderr
+      output: `Reflog: ${reflogResult.stdout || 'Success!'}\n\nGC: ${gcResult.stdout || 'Success!'}\n\n${pushOutput}`
     };
   } catch (error) {
+    console.error('Error in post-cleaning commands:', error);
     return {
       success: false,
       message: 'Error executing post-cleaning commands',

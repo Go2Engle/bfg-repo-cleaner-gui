@@ -177,22 +177,30 @@ const App: React.FC = () => {
       // Keep the previous result visible
       setError(null);
 
+      console.log('Running post-cleaning commands for repository:', repoPath);
       const response = await window.electronAPI.runPostCleaningCommands({
         repoPath
       });
 
+      console.log('Post-cleaning commands response:', response);
       if (response.success) {
+        const resultText = `==== Post-Cleaning Commands ====\n${response.message}\n\n${response.output || ''}`;
+        
         setResult(prev => 
-          prev ? `${prev}\n\n==== Post-Cleaning Commands ====\n${response.message}\n${response.output || ''}` 
-               : `Post-Cleaning Commands Executed:\n${response.message}\n${response.output || ''}`
+          prev ? `${prev}\n\n${resultText}` 
+               : `Post-Cleaning Commands Executed:\n${resultText}`
         );
+        
+        console.log('Post-cleaning commands executed successfully');
       } else {
-        setError(
-          `Error executing post-cleaning commands:\n${response.message}\n${response.error || ''}`
-        );
+        const errorText = `Error executing post-cleaning commands:\n${response.message}\n${response.error || ''}`;
+        console.error(errorText);
+        setError(errorText);
       }
     } catch (err) {
-      setError(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
+      const errorMessage = `An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`;
+      console.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsRunningPostCommands(false);
       // Hide the option after running
@@ -352,7 +360,7 @@ const App: React.FC = () => {
           <div className="post-cleaning-section">
             <p>Repository cleaning completed. Would you like to run the recommended post-cleaning commands?</p>
             <div className="post-cleaning-code">
-              <pre><code>git reflog expire --expire=now --all && git gc --prune=now --aggressive && git push</code></pre>
+              <pre><code>git reflog expire --expire=now --all && git gc --prune=now --aggressive && git push --mirror</code></pre>
             </div>
             <button
               className="secondary-button"
@@ -397,6 +405,10 @@ git reflog expire --expire=now --all
 git gc --prune=now --aggressive</code></pre>
             
             <p>For mirrored repositories, also run:</p>
+            <pre><code>cd your-mirror.git
+git push --mirror</code></pre>
+            
+            <p>Or to push to your original repo:</p>
             <pre><code>cd your-original-repo
 git remote add origin /path/to/your/mirror.git
 git push origin --force</code></pre>

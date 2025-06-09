@@ -28418,19 +28418,27 @@ const App = () => {
             setIsRunningPostCommands(true);
             // Keep the previous result visible
             setError(null);
+            console.log('Running post-cleaning commands for repository:', repoPath);
             const response = yield window.electronAPI.runPostCleaningCommands({
                 repoPath
             });
+            console.log('Post-cleaning commands response:', response);
             if (response.success) {
-                setResult(prev => prev ? `${prev}\n\n==== Post-Cleaning Commands ====\n${response.message}\n${response.output || ''}`
-                    : `Post-Cleaning Commands Executed:\n${response.message}\n${response.output || ''}`);
+                const resultText = `==== Post-Cleaning Commands ====\n${response.message}\n\n${response.output || ''}`;
+                setResult(prev => prev ? `${prev}\n\n${resultText}`
+                    : `Post-Cleaning Commands Executed:\n${resultText}`);
+                console.log('Post-cleaning commands executed successfully');
             }
             else {
-                setError(`Error executing post-cleaning commands:\n${response.message}\n${response.error || ''}`);
+                const errorText = `Error executing post-cleaning commands:\n${response.message}\n${response.error || ''}`;
+                console.error(errorText);
+                setError(errorText);
             }
         }
         catch (err) {
-            setError(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
+            const errorMessage = `An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`;
+            console.error(errorMessage);
+            setError(errorMessage);
         }
         finally {
             setIsRunningPostCommands(false);
@@ -28513,7 +28521,7 @@ const App = () => {
                 react_1.default.createElement("p", null, "Repository cleaning completed. Would you like to run the recommended post-cleaning commands?"),
                 react_1.default.createElement("div", { className: "post-cleaning-code" },
                     react_1.default.createElement("pre", null,
-                        react_1.default.createElement("code", null, "git reflog expire --expire=now --all && git gc --prune=now --aggressive && git push"))),
+                        react_1.default.createElement("code", null, "git reflog expire --expire=now --all && git gc --prune=now --aggressive && git push --mirror"))),
                 react_1.default.createElement("button", { className: "secondary-button", onClick: handleRunPostCleaningCommands, disabled: isRunningPostCommands }, isRunningPostCommands ? 'Running Commands...' : 'Run Post-Cleaning Commands'))),
             error && (react_1.default.createElement("div", { className: "result error" },
                 react_1.default.createElement("h3", null, "Error"),
@@ -28533,6 +28541,9 @@ const App = () => {
                     react_1.default.createElement("pre", null,
                         react_1.default.createElement("code", null, "cd your-repo git reflog expire --expire=now --all git gc --prune=now --aggressive")),
                     react_1.default.createElement("p", null, "For mirrored repositories, also run:"),
+                    react_1.default.createElement("pre", null,
+                        react_1.default.createElement("code", null, "cd your-mirror.git git push --mirror")),
+                    react_1.default.createElement("p", null, "Or to push to your original repo:"),
                     react_1.default.createElement("pre", null,
                         react_1.default.createElement("code", null, "cd your-original-repo git remote add origin /path/to/your/mirror.git git push origin --force"))))),
         react_1.default.createElement("footer", { className: "footer" },
