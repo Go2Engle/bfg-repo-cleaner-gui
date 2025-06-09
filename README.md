@@ -9,13 +9,28 @@ A cross-platform GUI application for [BFG Repo-Cleaner](https://rtyley.github.io
 - Modern, user-friendly interface
 - Cross-platform (Windows, macOS, Linux)
 
-## Prerequisites
+## Installation
 
-- Node.js and npm
+### Download Pre-built Binary
+
+You can download the latest pre-built application binary for your platform from the [GitHub Releases page](https://github.com/[your-username]/bfg-repo-cleaner-gui/releases/latest).
+
+Available platforms:
+- Windows (.exe installer, .zip)
+- macOS (.dmg, .zip)
+- Linux (.deb, .rpm, .AppImage)
+
+### Prerequisites for Running the Application
+
 - Java Runtime Environment (JRE) - required to run BFG Repo-Cleaner
-- [BFG Repo-Cleaner JAR file](https://rtyley.github.io/bfg-repo-cleaner/)
+- [BFG Repo-Cleaner JAR file](https://rtyley.github.io/bfg-repo-cleaner/) - download this separately
 
 ## Development
+
+### Prerequisites for Development
+
+- Node.js and npm
+- Java Runtime Environment (JRE)
 
 ### Install Dependencies
 
@@ -65,13 +80,14 @@ To create a new release:
 
 ## Usage
 
-1. Download and save the BFG Repo-Cleaner JAR file (e.g., `bfg-1.14.0.jar`) from the [official website](https://rtyley.github.io/bfg-repo-cleaner/)
-2. Launch the BFG Repo-Cleaner GUI
-3. Select your Git repository path
-4. Select the BFG Repo-Cleaner JAR file
-5. Configure cleaning options (text replacements, file size limits)
-6. Click "Clean Repository"
-7. Follow any additional instructions provided in the output
+1. Install the application using one of the binaries from the [GitHub Releases page](https://github.com/[your-username]/bfg-repo-cleaner-gui/releases/latest)
+2. Download and save the BFG Repo-Cleaner JAR file (e.g., `bfg-1.14.0.jar`) from the [official website](https://rtyley.github.io/bfg-repo-cleaner/)
+3. Launch the BFG Repo-Cleaner GUI
+4. Select your Git repository path
+5. Select the BFG Repo-Cleaner JAR file
+6. Configure cleaning options (text replacements, file size limits)
+7. Click "Clean Repository"
+8. Follow any additional instructions provided in the output
 
 ### macOS Security Notice
 
