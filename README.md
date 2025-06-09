@@ -6,6 +6,12 @@
 
 A cross-platform GUI application for [BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/), a simpler and faster alternative to git-filter-branch for cleaning Git repositories of sensitive data and large files.
 
+## Screenshot
+
+<div align="Center">
+  <img src="assets/screenshot.png" alt="BFG Repo-Cleaner GUI Screenshot" width="800">
+</div>
+
 ## Features
 
 - Clean Git repositories of sensitive data such as passwords, API keys, etc.
