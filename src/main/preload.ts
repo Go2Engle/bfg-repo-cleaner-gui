@@ -15,5 +15,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     bfgPath: string;
     textReplacements: string[];
     fileSizes: string;
-  }) => ipcRenderer.invoke('clean-repository', options)
+  }) => ipcRenderer.invoke('clean-repository', options),
+  runPostCleaningCommands: (options: {
+    repoPath: string;
+  }) => ipcRenderer.invoke('run-post-cleaning-commands', options),
+  resetAndCleanup: (options: {
+    repoPath: string;
+  }) => ipcRenderer.invoke('reset-and-cleanup', options)
 });

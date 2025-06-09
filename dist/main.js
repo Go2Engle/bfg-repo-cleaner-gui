@@ -1100,6 +1100,53 @@ electron_1.ipcMain.handle('select-clone-directory', () => __awaiter(void 0, void
     });
     return result;
 }));
+// Handle running post-cleaning Git commands
+electron_1.ipcMain.handle('run-post-cleaning-commands', (event, options) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { repoPath } = options;
+        if (!fs.existsSync(repoPath)) {
+            return { success: false, message: 'Repository path does not exist' };
+        }
+        // Change directory to the repository and run the commands
+        const command = `cd "${repoPath}" && git reflog expire --expire=now --all && git gc --prune=now --aggressive && git push`;
+        // Execute the command
+        const { stdout, stderr } = yield execPromise(command);
+        return {
+            success: true,
+            message: 'Post-cleaning commands executed successfully',
+            output: stdout,
+            error: stderr
+        };
+    }
+    catch (error) {
+        return {
+            success: false,
+            message: 'Error executing post-cleaning commands',
+            error: error instanceof Error ? error.message : String(error)
+        };
+    }
+}));
+// Handle reset and cleanup request
+electron_1.ipcMain.handle('reset-and-cleanup', (event, options) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { repoPath } = options;
+        if (repoPath && fs.existsSync(repoPath)) {
+            // Use rimraf or fs.rmSync (Node.js >= 14) to recursively delete the directory
+            fs.rmSync(repoPath, { recursive: true, force: true });
+        }
+        return {
+            success: true,
+            message: 'Reset and cleanup completed successfully'
+        };
+    }
+    catch (error) {
+        return {
+            success: false,
+            message: 'Error during reset and cleanup',
+            error: error instanceof Error ? error.message : String(error)
+        };
+    }
+}));
 
 
 /***/ }),

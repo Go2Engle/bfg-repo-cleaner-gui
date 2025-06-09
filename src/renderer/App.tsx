@@ -29,6 +29,21 @@ declare global {
         output?: string;
         error?: string;
       }>;
+      runPostCleaningCommands: (options: {
+        repoPath: string;
+      }) => Promise<{
+        success: boolean;
+        message: string;
+        output?: string;
+        error?: string;
+      }>;
+      resetAndCleanup: (options: {
+        repoPath: string;
+      }) => Promise<{
+        success: boolean;
+        message: string;
+        error?: string;
+      }>;
     };
   }
 }
@@ -43,17 +58,13 @@ const App: React.FC = () => {
   const [fileSizes, setFileSizes] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isCloning, setIsCloning] = useState<boolean>(false);
+  const [isRunningPostCommands, setIsRunningPostCommands] = useState<boolean>(false);
+  const [showPostCleaningOption, setShowPostCleaningOption] = useState<boolean>(false);
+  const [isResetting, setIsResetting] = useState<boolean>(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [useExistingRepo, setUseExistingRepo] = useState<boolean>(true);
 
-  // Handle selecting repository folder
-  const handleSelectRepo = async () => {
-    const result = await window.electronAPI.selectRepository();
-    if (!result.canceled && result.filePaths.length > 0) {
-      setRepoPath(result.filePaths[0]);
-    }
-  };
+  // Repository selection is now only through cloning
 
   // Handle selecting target directory for cloning
   const handleSelectCloneDirectory = async () => {
@@ -112,13 +123,7 @@ const App: React.FC = () => {
   // Handle cleaning repository
   const handleCleanRepository = async () => {
     if (!repoPath || !bfgPath) {
-      setError('Please select both a repository path and the BFG jar file path.');
-      return;
-    }
-    
-    // If we're in clone mode and haven't cloned yet, show an error
-    if (!useExistingRepo && !repoPath) {
-      setError('Please clone the repository first.');
+      setError('Please clone the repository and select the BFG jar file path.');
       return;
     }
 
@@ -126,6 +131,7 @@ const App: React.FC = () => {
       setIsProcessing(true);
       setResult(null);
       setError(null);
+      setShowPostCleaningOption(false);
 
       // Parse text replacements from the textarea (one replacement per line)
       const textReplacements = replacements
@@ -145,6 +151,8 @@ const App: React.FC = () => {
         setResult(
           `${response.message}\n\n${response.output || ''}`
         );
+        // Show the option to run post-cleaning commands
+        setShowPostCleaningOption(true);
       } else {
         setError(
           `${response.message}\n${response.error || ''}`
@@ -154,6 +162,70 @@ const App: React.FC = () => {
       setError(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsProcessing(false);
+    }
+  };
+  
+  // Handle running post-cleaning commands
+  const handleRunPostCleaningCommands = async () => {
+    if (!repoPath) {
+      setError('Repository path is missing.');
+      return;
+    }
+
+    try {
+      setIsRunningPostCommands(true);
+      // Keep the previous result visible
+      setError(null);
+
+      const response = await window.electronAPI.runPostCleaningCommands({
+        repoPath
+      });
+
+      if (response.success) {
+        setResult(prev => 
+          prev ? `${prev}\n\n==== Post-Cleaning Commands ====\n${response.message}\n${response.output || ''}` 
+               : `Post-Cleaning Commands Executed:\n${response.message}\n${response.output || ''}`
+        );
+      } else {
+        setError(
+          `Error executing post-cleaning commands:\n${response.message}\n${response.error || ''}`
+        );
+      }
+    } catch (err) {
+      setError(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsRunningPostCommands(false);
+      // Hide the option after running
+      setShowPostCleaningOption(false);
+    }
+  };
+  
+  // Handle reset all fields (except BFG jar path)
+  const handleReset = async () => {
+    try {
+      setIsResetting(true);
+      
+      // If we have a repository path, clean it up first
+      if (repoPath) {
+        await window.electronAPI.resetAndCleanup({
+          repoPath
+        });
+      }
+      
+      // Reset all state variables except bfgPath
+      setRepoPath('');
+      setRepoUrl('');
+      setTargetDir('');
+      setReplacements('');
+      setFileSizes('');
+      setResult(null);
+      setError(null);
+      setShowPostCleaningOption(false);
+      
+    } catch (err) {
+      setError(`Error during reset: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -169,74 +241,43 @@ const App: React.FC = () => {
           <h2>Repository Settings</h2>
           
           <div className="repo-selection">
-            <div className="repo-selection-buttons">
-              <button 
-                className={useExistingRepo ? 'selected' : ''} 
-                onClick={() => setUseExistingRepo(true)}
-              >
-                Use Existing Repository
-              </button>
-              <button 
-                className={!useExistingRepo ? 'selected' : ''} 
-                onClick={() => setUseExistingRepo(false)}
-              >
-                Clone Repository with --mirror
-              </button>
-            </div>
+            <h3>Clone Repository with --mirror</h3>
           </div>
 
-          {useExistingRepo ? (
-            <div className="form-group">
-              <label>Git Repository Path:</label>
-              <div className="input-with-button">
-                <input 
-                  type="text" 
-                  value={repoPath} 
-                  onChange={(e) => setRepoPath(e.target.value)} 
-                  placeholder="Select or enter git repository path" 
-                />
-                <button onClick={handleSelectRepo}>Browse</button>
-              </div>
-              <p className="help-text">Select an existing Git repository on your machine</p>
+          <div className="form-group">
+            <label>Git Repository URL:</label>
+            <input 
+              type="text" 
+              value={repoUrl} 
+              onChange={(e) => setRepoUrl(e.target.value)} 
+              placeholder="https://github.com/username/repository.git" 
+            />
+            <p className="help-text">Enter the URL of the Git repository to clone</p>
+          </div>
+          
+          <div className="form-group">
+            <label>Target Directory:</label>
+            <div className="input-with-button">
+              <input 
+                type="text" 
+                value={targetDir} 
+                onChange={(e) => setTargetDir(e.target.value)} 
+                placeholder="Select directory to clone into" 
+              />
+              <button onClick={handleSelectCloneDirectory}>Browse</button>
             </div>
-          ) : (
-            <>
-              <div className="form-group">
-                <label>Git Repository URL:</label>
-                <input 
-                  type="text" 
-                  value={repoUrl} 
-                  onChange={(e) => setRepoUrl(e.target.value)} 
-                  placeholder="https://github.com/username/repository.git" 
-                />
-                <p className="help-text">Enter the URL of the Git repository to clone</p>
-              </div>
-              
-              <div className="form-group">
-                <label>Target Directory:</label>
-                <div className="input-with-button">
-                  <input 
-                    type="text" 
-                    value={targetDir} 
-                    onChange={(e) => setTargetDir(e.target.value)} 
-                    placeholder="Select directory to clone into" 
-                  />
-                  <button onClick={handleSelectCloneDirectory}>Browse</button>
-                </div>
-                <p className="help-text">Select where to clone the repository</p>
-              </div>
-              
-              <div className="clone-actions">
-                <button 
-                  className="clone-button"
-                  onClick={handleCloneRepository}
-                  disabled={isCloning || !repoUrl || !targetDir}
-                >
-                  {isCloning ? 'Cloning...' : 'Clone Repository with --mirror'}
-                </button>
-              </div>
-            </>
-          )}
+            <p className="help-text">Select where to clone the repository</p>
+          </div>
+          
+          <div className="clone-actions">
+            <button 
+              className="clone-button"
+              onClick={handleCloneRepository}
+              disabled={isCloning || !repoUrl || !targetDir}
+            >
+              {isCloning ? 'Cloning...' : 'Clone Repository with --mirror'}
+            </button>
+          </div>
 
           <div className="form-group">
             <label>BFG JAR File Path:</label>
@@ -293,11 +334,35 @@ const App: React.FC = () => {
           <button 
             className="primary-button"
             onClick={handleCleanRepository}
-            disabled={isProcessing || !bfgPath || (!useExistingRepo && !repoPath) || (useExistingRepo && !repoPath)}
+            disabled={isProcessing || isRunningPostCommands || isResetting || !bfgPath || !repoPath}
           >
             {isProcessing ? 'Cleaning Repository...' : 'Clean Repository'}
           </button>
+          
+          <button
+            className="reset-button"
+            onClick={handleReset}
+            disabled={isProcessing || isRunningPostCommands || isResetting}
+          >
+            {isResetting ? 'Resetting...' : 'Reset All Fields'}
+          </button>
         </div>
+        
+        {showPostCleaningOption && (
+          <div className="post-cleaning-section">
+            <p>Repository cleaning completed. Would you like to run the recommended post-cleaning commands?</p>
+            <div className="post-cleaning-code">
+              <pre><code>git reflog expire --expire=now --all && git gc --prune=now --aggressive && git push</code></pre>
+            </div>
+            <button
+              className="secondary-button"
+              onClick={handleRunPostCleaningCommands}
+              disabled={isRunningPostCommands}
+            >
+              {isRunningPostCommands ? 'Running Commands...' : 'Run Post-Cleaning Commands'}
+            </button>
+          </div>
+        )}
 
         {error && (
           <div className="result error">

@@ -56,7 +56,9 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     selectBfgJar: () => electron_1.ipcRenderer.invoke('select-bfg-jar'),
     selectCloneDirectory: () => electron_1.ipcRenderer.invoke('select-clone-directory'),
     cloneRepository: (options) => electron_1.ipcRenderer.invoke('clone-repository', options),
-    cleanRepository: (options) => electron_1.ipcRenderer.invoke('clean-repository', options)
+    cleanRepository: (options) => electron_1.ipcRenderer.invoke('clean-repository', options),
+    runPostCleaningCommands: (options) => electron_1.ipcRenderer.invoke('run-post-cleaning-commands', options),
+    resetAndCleanup: (options) => electron_1.ipcRenderer.invoke('reset-and-cleanup', options)
 });
 
 })();
