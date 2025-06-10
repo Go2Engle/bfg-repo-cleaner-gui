@@ -53,9 +53,13 @@ jobs:
             arch=$(uname -m)
             echo "Building for macOS on $arch architecture"
             npm run make
+            # Give a moment for file handles to close properly
+            sleep 3
           else
             echo "Building for Linux"
             npm run make
+            # Give a moment for file handles to close properly
+            sleep 3
           fi
       
       - name: Build and package for Windows
@@ -64,6 +68,8 @@ jobs:
         run: |
           Write-Host "Building for Windows"
           npm run make
+          # Give a moment for file handles to close properly
+          Start-Sleep -Seconds 3
       
       - name: Determine macOS architecture
         if: matrix.platform == 'mac'
@@ -109,6 +115,8 @@ jobs:
           if [ -f "./out/make/zip/darwin/$arch/bfg-repo-cleaner-gui-darwin-$arch-$VERSION.zip" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "Archive found: ./out/make/zip/darwin/$arch/bfg-repo-cleaner-gui-darwin-$arch-$VERSION.zip"
+            # Ensure file is not locked by any process
+            sleep 2
           else
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Archive not found for $arch"
@@ -117,9 +125,12 @@ jobs:
 
       - name: Upload macOS artifacts
         if: matrix.platform == 'mac' && steps.check-mac-archive.outputs.exists == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-release-asset@v1
         with:
-          files: ./out/make/zip/darwin/${{ steps.mac-arch.outputs.arch }}/bfg-repo-cleaner-gui-darwin-${{ steps.mac-arch.outputs.arch }}-${{ steps.get-version-unix.outputs.version }}.zip
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./out/make/zip/darwin/${{ steps.mac-arch.outputs.arch }}/bfg-repo-cleaner-gui-darwin-${{ steps.mac-arch.outputs.arch }}-${{ steps.get-version-unix.outputs.version }}.zip
+          asset_name: bfg-repo-cleaner-gui-darwin-${{ steps.mac-arch.outputs.arch }}-${{ steps.get-version-unix.outputs.version }}.zip
+          asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -160,9 +171,12 @@ jobs:
 
       - name: Upload Windows artifacts
         if: matrix.platform == 'win' && steps.check-win-artifact.outputs.exists == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-release-asset@v1
         with:
-          files: ${{ steps.check-win-artifact.outputs.setup_path }}
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ steps.check-win-artifact.outputs.setup_path }}
+          asset_name: bfg-repo-cleaner-gui-${{ steps.get-version-win.outputs.version }}-Setup.exe
+          asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -183,9 +197,12 @@ jobs:
 
       - name: Upload Linux Deb artifacts
         if: matrix.platform == 'linux' && steps.check-linux-deb.outputs.exists == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-release-asset@v1
         with:
-          files: ./out/make/deb/x64/bfg-repo-cleaner-gui_${{ steps.get-version-unix.outputs.version }}_amd64.deb
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./out/make/deb/x64/bfg-repo-cleaner-gui_${{ steps.get-version-unix.outputs.version }}_amd64.deb
+          asset_name: bfg-repo-cleaner-gui_${{ steps.get-version-unix.outputs.version }}_amd64.deb
+          asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -206,8 +223,11 @@ jobs:
 
       - name: Upload Linux RPM artifacts
         if: matrix.platform == 'linux' && steps.check-linux-rpm.outputs.exists == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-release-asset@v1
         with:
-          files: ./out/make/rpm/x64/bfg-repo-cleaner-gui-${{ steps.get-version-unix.outputs.version }}-1.x86_64.rpm
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./out/make/rpm/x64/bfg-repo-cleaner-gui-${{ steps.get-version-unix.outputs.version }}-1.x86_64.rpm
+          asset_name: bfg-repo-cleaner-gui-${{ steps.get-version-unix.outputs.version }}-1.x86_64.rpm
+          asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
