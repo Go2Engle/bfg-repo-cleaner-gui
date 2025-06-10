@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { AutoUpdater } from './autoUpdater';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -11,7 +10,6 @@ if (require('electron-squirrel-startup')) {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let autoUpdater: AutoUpdater | null = null;
 
 const createWindow = (): void => {  // Create the browser window
   mainWindow = new BrowserWindow({
@@ -37,18 +35,6 @@ const createWindow = (): void => {  // Create the browser window
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show();
-    
-    // Initialize auto-updater after window is shown
-    if (mainWindow && !autoUpdater) {
-      autoUpdater = new AutoUpdater(mainWindow);
-      
-      // Check for updates silently on app start (only in production)
-      if (process.env.NODE_ENV !== 'development') {
-        setTimeout(() => {
-          autoUpdater?.checkForUpdatesQuietly();
-        }, 5000); // Wait 5 seconds after app start
-      }
-    }
   });
 
   // Set up window event listeners to sync state with renderer
@@ -109,29 +95,6 @@ ipcMain.handle('window-close', () => {
 
 ipcMain.handle('window-is-maximized', () => {
   return mainWindow ? mainWindow.isMaximized() : false;
-});
-
-// Auto-updater handlers
-ipcMain.handle('check-for-updates', async () => {
-  if (autoUpdater) {
-    await autoUpdater.checkForUpdates();
-  }
-});
-
-ipcMain.handle('download-update', async () => {
-  if (autoUpdater) {
-    await autoUpdater.downloadUpdate();
-  }
-});
-
-ipcMain.handle('install-update', () => {
-  if (autoUpdater) {
-    autoUpdater.installUpdate();
-  }
-});
-
-ipcMain.handle('get-app-version', () => {
-  return app.getVersion();
 });
 
 // Check for BFG jar existence and version
