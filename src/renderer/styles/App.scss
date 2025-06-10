@@ -507,75 +507,189 @@ $warning-color: var(--warning-color);
   }
 }
 
-.important-note {
-  margin-top: 20px;
-  padding: 15px 20px;
-  background-color: rgba($warning-color, 0.1);
-  border-left: 4px solid $warning-color;
-  border-radius: 4px;
+.secret-warning-section {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #fff2f2;
+  border: 2px solid var(--error-color);
+  border-radius: 8px;
 
-  h3 {
-    color: var(--warning-color-dark);
-    margin-bottom: 10px;
-    font-size: 1.1rem;
+  [data-theme='dark'] & {
+    background-color: #2d1b1b;
+    border-color: var(--error-color);
   }
 
-  p {
-    margin-bottom: 10px;
-    line-height: 1.5;
-    font-size: 0.95rem;
+  .warning-title {
+    color: var(--error-color);
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+  }
 
-    &:last-child {
-      margin-bottom: 0;
+  .warning-message {
+    margin-bottom: 16px;
+    color: var(--text-color);
+    font-weight: 500;
+  }
+
+  .found-secrets {
+    margin: 16px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    background-color: var(--card-bg-color);
+
+    .secret-item {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+
+      &:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+      }
+
+      strong {
+        color: var(--text-color);
+      }
+
+      code {
+        background-color: var(--pre-bg-color);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        color: var(--error-color);
+        font-weight: 600;
+      }
+
+      ul {
+        margin-top: 6px;
+        margin-left: 20px;
+
+        li {
+          margin-bottom: 4px;
+
+          code {
+            color: var(--text-secondary);
+            font-weight: normal;
+          }
+        }
+      }
+    }
+  }
+
+  .warning-actions {
+    margin-top: 16px;
+
+    .warning-note {
+      padding: 12px;
+      background-color: #fffacd;
+      border: 1px solid var(--warning-color);
+      border-radius: 6px;
+      margin-bottom: 16px;
+      color: #804500;
+      font-size: 14px;
+
+      [data-theme='dark'] & {
+        background-color: #2d2416;
+        color: var(--warning-color-light);
+      }
+
+      strong {
+        color: var(--warning-color);
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      @media (max-width: 600px) {
+        flex-direction: column;
+      }
+    }
+
+    .danger-button {
+      background-color: var(--error-color);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+
+      &:hover:not(:disabled) {
+        background-color: var(--error-color-dark);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .secondary-button {
+      background-color: var(--text-secondary);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+
+      &:hover:not(:disabled) {
+        background-color: #555;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
     }
   }
 }
 
-// Firefox scrollbar styling (fallback)
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb-color) transparent;
-}
-
-// Custom scrollbar styling that adapts to themes
+// Scrollbar styling for light and dark themes
 ::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--background-color);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb-color);
-  border-radius: 7px;
-  border: 3px solid var(--background-color);
-  transition: background-color 0.2s ease;
+  background: var(--border-color);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover-color);
+  background: var(--text-secondary);
 }
 
-::-webkit-scrollbar-thumb:active {
-  background: var(--scrollbar-thumb-active-color);
-}
-
-::-webkit-scrollbar-corner {
-  background: var(--background-color);
-}
-
-// Light theme scrollbar colors
-[data-theme="light"] {
-  --scrollbar-thumb-color: rgba(0, 0, 0, 0.2);
-  --scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.35);
-  --scrollbar-thumb-active-color: rgba(0, 0, 0, 0.5);
-}
-
-// Dark theme scrollbar colors
-[data-theme="dark"] {
-  --scrollbar-thumb-color: rgba(255, 255, 255, 0.2);
-  --scrollbar-thumb-hover-color: rgba(255, 255, 255, 0.35);
-  --scrollbar-thumb-active-color: rgba(255, 255, 255, 0.5);
+// Dark theme scrollbar
+[data-theme='dark'] {
+  ::-webkit-scrollbar-track {
+    background: var(--card-bg-color);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #4a4a4e;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5e;
+  }
 }

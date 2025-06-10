@@ -46,6 +46,27 @@ declare global {
         message: string;
         error?: string;
       }>;
+      checkSecretsInHead: (options: {
+        repoPath: string;
+        secrets: string[];
+      }) => Promise<{
+        success: boolean;
+        foundSecrets: Array<{secret: string, files: string[]}>;
+        message: string;
+        error?: string;
+      }>;
+      cleanSecretsFromHead: (options: {
+        repoPath: string;
+        secrets: string[];
+        repoUrl: string;
+        targetDir: string;
+      }) => Promise<{
+        success: boolean;
+        message: string;
+        output?: string;
+        replacementsMade: boolean;
+        error?: string;
+      }>;
       // Window controls
       windowMinimize: () => Promise<void>;
       windowMaximize: () => Promise<void>;
@@ -74,6 +95,12 @@ const AppContent: React.FC = () => {
   const [isResetting, setIsResetting] = useState<boolean>(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // New state for secret checking workflow
+  const [isCheckingSecrets, setIsCheckingSecrets] = useState<boolean>(false);
+  const [foundSecrets, setFoundSecrets] = useState<Array<{secret: string, files: string[]}>>([]);
+  const [showSecretWarning, setShowSecretWarning] = useState<boolean>(false);
+  const [isCleaningSecrets, setIsCleaningSecrets] = useState<boolean>(false);
 
   // Repository selection is now only through cloning
 
@@ -134,24 +161,119 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Handle cleaning repository
+  // Handle cleaning repository - updated to check for secrets first
   const handleCleanRepository = async () => {
     if (!repoPath || !bfgPath) {
       setError('Please clone the repository and select the BFG jar file path.');
       return;
     }
 
+    // Parse text replacements from the textarea (one replacement per line)
+    const textReplacements = replacements
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    // If we have text replacements, check for secrets in HEAD first
+    if (textReplacements.length > 0) {
+      try {
+        setIsCheckingSecrets(true);
+        setResult(null);
+        setError(null);
+        setShowPostCleaningOption(false);
+        setShowSecretWarning(false);
+
+        // Check for secrets in HEAD branch
+        const secretCheckResponse = await window.electronAPI.checkSecretsInHead({
+          repoPath,
+          secrets: textReplacements
+        });
+
+        if (secretCheckResponse.success) {
+          if (secretCheckResponse.foundSecrets.length > 0) {
+            // Secrets found - show warning
+            setFoundSecrets(secretCheckResponse.foundSecrets);
+            setShowSecretWarning(true);
+            setIsCheckingSecrets(false);
+            return; // Stop here and wait for user decision
+          } else {
+            // No secrets found in HEAD, proceed with BFG cleaning
+            setResult('No secrets found in HEAD branch. Proceeding with BFG cleaning...');
+          }
+        } else {
+          setError(`Error checking secrets in HEAD: ${secretCheckResponse.message}\n${secretCheckResponse.error || ''}`);
+          setIsCheckingSecrets(false);
+          return;
+        }
+      } catch (err) {
+        setError(`An unexpected error occurred while checking secrets: ${err instanceof Error ? err.message : String(err)}`);
+        setIsCheckingSecrets(false);
+        return;
+      } finally {
+        setIsCheckingSecrets(false);
+      }
+    }
+
+    // Proceed with BFG cleaning
+    await proceedWithBfgCleaning(textReplacements);
+  };
+
+  // Handle cleaning secrets from HEAD branch
+  const handleCleanSecretsFromHead = async () => {
+    if (!repoPath || !repoUrl) {
+      setError('Repository path or URL is missing.');
+      return;
+    }
+
     try {
-      setIsProcessing(true);
-      setResult(null);
+      setIsCleaningSecrets(true);
       setError(null);
-      setShowPostCleaningOption(false);
 
       // Parse text replacements from the textarea (one replacement per line)
       const textReplacements = replacements
         .split('\n')
         .map(line => line.trim())
         .filter(line => line.length > 0);
+
+      const response = await window.electronAPI.cleanSecretsFromHead({
+        repoPath,
+        secrets: textReplacements,
+        repoUrl,
+        targetDir
+      });
+
+      if (response.success) {
+        setResult(`${response.message}\n\n${response.output || ''}`);
+        setShowSecretWarning(false);
+        setFoundSecrets([]);
+        
+        if (response.replacementsMade) {
+          // Repository was re-cloned, proceed with BFG cleaning
+          setResult(prev => `${prev}\n\nProceeding with BFG cleaning...`);
+          await proceedWithBfgCleaning(textReplacements);
+        }
+      } else {
+        setError(`${response.message}\n${response.error || ''}`);
+      }
+    } catch (err) {
+      setError(`An unexpected error occurred while cleaning secrets: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsCleaningSecrets(false);
+    }
+  };
+
+  // Handle aborting the operation when secrets are found
+  const handleAbortOperation = () => {
+    setShowSecretWarning(false);
+    setFoundSecrets([]);
+    setResult('Operation aborted by user - secrets found in HEAD branch');
+  };
+
+  // Extracted BFG cleaning logic
+  const proceedWithBfgCleaning = async (textReplacements: string[]) => {
+    try {
+      setIsProcessing(true);
+      setShowPostCleaningOption(false);
 
       // Call the main process to execute BFG
       const response = await window.electronAPI.cleanRepository({
@@ -162,15 +284,12 @@ const AppContent: React.FC = () => {
       });
 
       if (response.success) {
-        setResult(
-          `${response.message}\n\n${response.output || ''}`
-        );
+        const resultText = `${response.message}\n\n${response.output || ''}`;
+        setResult(prev => prev ? `${prev}\n\n==== BFG Cleaning ====\n${resultText}` : resultText);
         // Show the option to run post-cleaning commands
         setShowPostCleaningOption(true);
       } else {
-        setError(
-          `${response.message}\n${response.error || ''}`
-        );
+        setError(`${response.message}\n${response.error || ''}`);
       }
     } catch (err) {
       setError(`An unexpected error occurred: ${err instanceof Error ? err.message : String(err)}`);
@@ -178,7 +297,7 @@ const AppContent: React.FC = () => {
       setIsProcessing(false);
     }
   };
-  
+
   // Handle running post-cleaning commands
   const handleRunPostCleaningCommands = async () => {
     if (!repoPath) {
@@ -244,6 +363,10 @@ const AppContent: React.FC = () => {
       setError(null);
       setCloneStatus('idle');
       setShowPostCleaningOption(false);
+      
+      // Reset new secret checking state
+      setFoundSecrets([]);
+      setShowSecretWarning(false);
       
     } catch (err) {
       setError(`Error during reset: ${err instanceof Error ? err.message : String(err)}`);
@@ -383,9 +506,10 @@ const AppContent: React.FC = () => {
           <button 
             className="primary-button"
             onClick={handleCleanRepository}
-            disabled={isProcessing || isRunningPostCommands || isResetting || !bfgPath || !repoPath}
+            disabled={isProcessing || isRunningPostCommands || isResetting || isCheckingSecrets || isCleaningSecrets || !bfgPath || !repoPath}
           >
-            {isProcessing ? 'Cleaning Repository...' : 'Clean Repository'}
+            {isCheckingSecrets ? 'Checking for Secrets...' : 
+             isProcessing ? 'Cleaning Repository...' : 'Clean Repository'}
           </button>
           
           <button
@@ -395,11 +519,62 @@ const AppContent: React.FC = () => {
                 handleReset();
               }
             }}
-            disabled={isProcessing || isRunningPostCommands || isResetting}
+            disabled={isProcessing || isRunningPostCommands || isResetting || isCheckingSecrets || isCleaningSecrets}
           >
             {isResetting ? 'Resetting...' : 'Reset'}
           </button>
         </div>
+        
+        {showSecretWarning && foundSecrets.length > 0 && (
+          <div className="secret-warning-section">
+            <h3 className="warning-title">⚠️ Secrets Found in HEAD Branch</h3>
+            <p className="warning-message">
+              The following secrets were found in your HEAD branch. BFG Repo-Cleaner does not clean the HEAD branch by default.
+            </p>
+            
+            <div className="found-secrets">
+              {foundSecrets.map((item, index) => (
+                <div key={index} className="secret-item">
+                  <strong>Secret:</strong> <code>{item.secret}</code>
+                  <br />
+                  <strong>Found in files:</strong>
+                  <ul>
+                    {item.files.map((file, fileIndex) => (
+                      <li key={fileIndex}><code>{file}</code></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            
+            <div className="warning-actions">
+              <div className="warning-note">
+                <strong>⚠️ WARNING:</strong> Cleaning secrets from HEAD will modify your latest commit and push the changes to the remote repository. 
+                Only proceed if you're sure this will not break production or cause issues with your deployment.
+                <br /><br />
+                <strong>Recommendation:</strong> Consider manually removing secrets from your HEAD branch first, then re-run this tool.
+              </div>
+              
+              <div className="action-buttons">
+                <button
+                  className="danger-button"
+                  onClick={handleCleanSecretsFromHead}
+                  disabled={isCleaningSecrets}
+                >
+                  {isCleaningSecrets ? 'Cleaning Secrets from HEAD...' : 'Clean Secrets from HEAD & Continue'}
+                </button>
+                
+                <button
+                  className="secondary-button"
+                  onClick={handleAbortOperation}
+                  disabled={isCleaningSecrets}
+                >
+                  Abort Operation
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {showPostCleaningOption && (
           <div className="post-cleaning-section">
