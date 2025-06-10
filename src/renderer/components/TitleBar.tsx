@@ -100,9 +100,6 @@ const TitleBar: React.FC = () => {
       
       <div className="title-bar-drag-region">
         <div className="title-bar-content">
-          <div className="title-bar-title">
-            <span>BFG Repo-Cleaner GUI</span>
-          </div>
           <div className="title-bar-theme">
             <ThemeToggle />
           </div>

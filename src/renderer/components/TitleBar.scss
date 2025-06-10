@@ -41,22 +41,10 @@
 .title-bar-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end; // Right-align the theme toggle
   width: 100%;
   height: 100%;
   padding: 0 16px;
-}
-
-.title-bar-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-color);
-  opacity: 0.8; // Subtle appearance like Discord
-  
-  // Hide title on smaller screens to save space
-  @media (max-width: 768px) {
-    display: none;
-  }
 }
 
 .title-bar-theme {
