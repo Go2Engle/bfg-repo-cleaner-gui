@@ -97,17 +97,12 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--text-color);
+  color: inherit; // Will inherit from theme-specific rules below
   transition: background-color 0.15s ease, color 0.15s ease;
   opacity: 0.7;
   
   &:hover {
     opacity: 1;
-    background: var(--hover-bg);
-  }
-  
-  &:active {
-    background: var(--active-bg);
   }
   
   &.close:hover {
@@ -138,22 +133,22 @@
   
   .title-bar--windows {
     border-bottom-color: var(--border-color);
-  }
-  
-  .title-bar-control {
-    color: #000000;
     
-    &:hover {
-      background: rgba(0, 0, 0, 0.05);
-    }
-    
-    &:active {
-      background: rgba(0, 0, 0, 0.1);
+    .title-bar-control {
+      color: #000000 !important;
+      
+      &:hover:not(.close) {
+        background: rgba(0, 0, 0, 0.05);
+      }
+      
+      &:active:not(.close) {
+        background: rgba(0, 0, 0, 0.1);
+      }
     }
   }
   
   .title-bar-theme .theme-toggle {
-    color: #000000;
+    color: #000000 !important;
     
     &:hover {
       background: rgba(0, 0, 0, 0.05);
@@ -175,22 +170,22 @@
   
   .title-bar--windows {
     border-bottom-color: var(--border-color);
-  }
-  
-  .title-bar-control {
-    color: #ffffff;
     
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    
-    &:active {
-      background: rgba(255, 255, 255, 0.2);
+    .title-bar-control {
+      color: #ffffff !important;
+      
+      &:hover:not(.close) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      
+      &:active:not(.close) {
+        background: rgba(255, 255, 255, 0.2);
+      }
     }
   }
   
   .title-bar-theme .theme-toggle {
-    color: #ffffff;
+    color: #ffffff !important;
     
     &:hover {
       background: rgba(255, 255, 255, 0.1);
