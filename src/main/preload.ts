@@ -22,6 +22,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   resetAndCleanup: (options: {
     repoPath: string;
   }) => ipcRenderer.invoke('reset-and-cleanup', options),
+  checkSecretsInHead: (options: {
+    repoPath: string;
+    secrets: string[];
+  }) => ipcRenderer.invoke('check-secrets-in-head', options),
+  cleanSecretsFromHead: (options: {
+    repoPath: string;
+    secrets: string[];
+    repoUrl: string;
+    targetDir: string;
+  }) => ipcRenderer.invoke('clean-secrets-from-head', options),
   // Window controls
   windowMinimize: () => ipcRenderer.invoke('window-minimize'),
   windowMaximize: () => ipcRenderer.invoke('window-maximize'),

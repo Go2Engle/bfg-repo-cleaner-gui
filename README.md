@@ -14,10 +14,25 @@ A cross-platform GUI application for [BFG Repo-Cleaner](https://rtyley.github.io
 
 ## Features
 
-- Clean Git repositories of sensitive data such as passwords, API keys, etc.
-- Remove large files from Git history
-- Modern, user-friendly interface
-- Cross-platform (Windows, macOS, Linux)
+- **Secret Detection in HEAD Branch**: Automatically checks for secrets/sensitive data in your HEAD branch before running BFG
+- **HEAD Branch Cleaning**: Optional automatic removal of secrets from HEAD branch with commit and push
+- **Repository History Cleaning**: Clean Git repositories of sensitive data such as passwords, API keys, etc.
+- **Large File Removal**: Remove large files from Git history
+- **Modern, User-friendly Interface**: Clean and intuitive GUI
+- **Cross-platform**: Works on Windows, macOS, and Linux
+- **Workflow Integration**: Seamless workflow from cloning to cleaning to pushing
+
+### Secret Detection Workflow
+
+The application now includes a new safety feature that checks for secrets in your HEAD branch before running BFG Repo-Cleaner:
+
+1. **Automatic Detection**: When you click "Clean Repository", the app first searches for any of your specified secrets in the HEAD branch
+2. **Warning Display**: If secrets are found, a warning dialog shows exactly which secrets were found and in which files
+3. **Safe Options**: You can choose to:
+   - **Clean Secrets from HEAD**: Automatically replace secrets with "REMOVED" in HEAD, commit, and push the changes
+   - **Abort Operation**: Cancel the operation and manually clean your HEAD branch first
+
+> **⚠️ Important**: BFG Repo-Cleaner doesn't modify your HEAD branch by default. This new feature ensures your HEAD branch is clean before running the history cleaning process.
 
 ## Installation
 
