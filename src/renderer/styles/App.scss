@@ -53,12 +53,23 @@
   --pre-bg-color: #242426;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  height: 100%;
 }
 
 // Variables
@@ -84,6 +95,20 @@ $warning-color: var(--warning-color);
 }
 
 .app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.content-container {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
@@ -504,4 +529,53 @@ $warning-color: var(--warning-color);
       margin-bottom: 0;
     }
   }
+}
+
+// Firefox scrollbar styling (fallback)
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-color) transparent;
+}
+
+// Custom scrollbar styling that adapts to themes
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-color);
+  border-radius: 7px;
+  border: 3px solid var(--background-color);
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover-color);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active-color);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--background-color);
+}
+
+// Light theme scrollbar colors
+[data-theme="light"] {
+  --scrollbar-thumb-color: rgba(0, 0, 0, 0.2);
+  --scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.35);
+  --scrollbar-thumb-active-color: rgba(0, 0, 0, 0.5);
+}
+
+// Dark theme scrollbar colors
+[data-theme="dark"] {
+  --scrollbar-thumb-color: rgba(255, 255, 255, 0.2);
+  --scrollbar-thumb-hover-color: rgba(255, 255, 255, 0.35);
+  --scrollbar-thumb-active-color: rgba(255, 255, 255, 0.5);
 }

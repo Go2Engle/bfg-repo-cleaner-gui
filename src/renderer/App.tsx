@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './styles/App.scss';
 import { ThemeProvider } from './context/ThemeContext';
-import ThemeToggle from './components/ThemeToggle';
+import TitleBar from './components/TitleBar';
 
 // Define the type for the window.electronAPI
 declare global {
@@ -46,6 +46,14 @@ declare global {
         message: string;
         error?: string;
       }>;
+      // Window controls
+      windowMinimize: () => Promise<void>;
+      windowMaximize: () => Promise<void>;
+      windowClose: () => Promise<void>;
+      windowIsMaximized: () => Promise<boolean>;
+      onWindowMaximized: (callback: (isMaximized: boolean) => void) => void;
+      // Platform information
+      getPlatform: () => string;
     };
   }
 }
@@ -246,11 +254,13 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="app">
-      <header className="header">
-        <h1>BFG Repo-Cleaner GUI</h1>
-        <p className="subtitle">Clean your Git repository of large files & sensitive data</p>
-        <ThemeToggle />
-      </header>
+      <TitleBar />
+      <div className="app-content">
+        <div className="content-container">
+          <header className="header">
+            <h1>BFG Repo-Cleaner GUI</h1>
+            <p className="subtitle">Clean your Git repository of large files & sensitive data</p>
+          </header>
 
       <div className="main">
         <section className="section info-section">
@@ -425,6 +435,8 @@ const AppContent: React.FC = () => {
       <footer className="footer">
         <p>BFG Repo-Cleaner GUI © 2025 | <a href="https://github.com/rtyley/bfg-repo-cleaner" target="_blank" rel="noopener noreferrer">BFG Documentation</a></p>
       </footer>
+        </div>
+      </div>
     </div>
   );
 };

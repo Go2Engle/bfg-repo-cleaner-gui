@@ -19,10 +19,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const [theme, setTheme] = useState<Theme>(getSystemTheme);
-
   useEffect(() => {
-    // Add theme class to the document body
+    // Add theme class to the document body and html element for better coverage
     document.body.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    
+    // Also add a class for legacy support
+    document.body.className = document.body.className.replace(/theme-\w+/g, '');
+    document.body.classList.add(`theme-${theme}`);
     
     // Listen for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');

@@ -11,21 +11,40 @@ if (require('electron-squirrel-startup')) {
 
 let mainWindow: BrowserWindow | null = null;
 
-const createWindow = (): void => {
-  // Create the browser window
+const createWindow = (): void => {  // Create the browser window
   mainWindow = new BrowserWindow({
     width: 900,
     height: 700,
+    frame: false, // Remove the default title bar completely
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    // Remove titleBarOverlay for Windows to prevent default controls
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
     },
     icon: path.join(__dirname, '..', '..', 'icons', 'png', '256x256.png'),
+    minWidth: 800,
+    minHeight: 600,
+    show: false, // Don't show until ready
   });
 
   // Load the index.html of the app
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  // Show window when ready
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show();
+  });
+
+  // Set up window event listeners to sync state with renderer
+  mainWindow.on('maximize', () => {
+    mainWindow?.webContents.send('window-maximized', true);
+  });
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow?.webContents.send('window-maximized', false);
+  });
 
   // Open the DevTools in development mode
   if (process.env.NODE_ENV === 'development') {
@@ -49,6 +68,33 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
+});
+
+// Window control handlers
+ipcMain.handle('window-minimize', () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.handle('window-maximize', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.handle('window-close', () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+ipcMain.handle('window-is-maximized', () => {
+  return mainWindow ? mainWindow.isMaximized() : false;
 });
 
 // Check for BFG jar existence and version
