@@ -658,6 +658,30 @@ $warning-color: var(--warning-color);
   }
 }
 
+.important-note {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: var(--pre-bg-color);
+  border-left: 4px solid var(--warning-color);
+  border-radius: 6px;
+
+  h3 {
+    color: var(--warning-color);
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
 // Scrollbar styling for light and dark themes
 ::-webkit-scrollbar {
   width: 8px;
