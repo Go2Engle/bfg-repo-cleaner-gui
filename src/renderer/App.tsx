@@ -256,10 +256,11 @@ const AppContent: React.FC = () => {
     <div className="app">
       <TitleBar />
       <div className="app-content">
-        <header className="header">
-          <h1>BFG Repo-Cleaner GUI</h1>
-          <p className="subtitle">Clean your Git repository of large files & sensitive data</p>
-        </header>
+        <div className="content-container">
+          <header className="header">
+            <h1>BFG Repo-Cleaner GUI</h1>
+            <p className="subtitle">Clean your Git repository of large files & sensitive data</p>
+          </header>
 
       <div className="main">
         <section className="section info-section">
@@ -434,6 +435,7 @@ const AppContent: React.FC = () => {
       <footer className="footer">
         <p>BFG Repo-Cleaner GUI © 2025 | <a href="https://github.com/rtyley/bfg-repo-cleaner" target="_blank" rel="noopener noreferrer">BFG Documentation</a></p>
       </footer>
+        </div>
       </div>
     </div>
   );
