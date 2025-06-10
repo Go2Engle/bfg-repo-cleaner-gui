@@ -221,12 +221,57 @@ ipcMain.handle('clone-repository', async (event, options) => {
 ipcMain.handle('select-clone-directory', async () => {
   if (!mainWindow) return { canceled: true };
   
-  const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openDirectory'],
-    title: 'Select Directory to Clone Repository Into'
-  });
+  const selectDirectory = async (): Promise<{ canceled: boolean; filePaths: string[] }> => {
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ['openDirectory'],
+      title: 'Select Directory to Clone Repository Into'
+    });
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      const selectedPath = result.filePaths[0];
+      
+      try {
+        // Check if directory is empty (ignoring hidden files and system files)
+        const files = fs.readdirSync(selectedPath);
+        const visibleFiles = files.filter(file => {
+          // Filter out hidden files (starting with .) and common system files
+          return !file.startsWith('.') && 
+                 file !== 'Thumbs.db' && 
+                 file !== 'desktop.ini' &&
+                 file !== '$RECYCLE.BIN';
+        });
+        
+        if (visibleFiles.length > 0) {
+          // Directory is not empty, show warning dialog
+          const warningResult = await dialog.showMessageBox(mainWindow!, {
+            type: 'warning',
+            title: 'Directory Not Empty',
+            message: 'The selected directory is not empty.',
+            detail: `For the BFG Repo-Cleaner to work properly, it needs to clone the repository into an empty directory. The selected directory contains: ${visibleFiles.slice(0, 5).join(', ')}${visibleFiles.length > 5 ? '...' : ''}. Please select an empty directory or create a new one.`,
+            buttons: ['Select Different Directory', 'Cancel'],
+            defaultId: 0,
+            cancelId: 1
+          });
+          
+          if (warningResult.response === 0) {
+            // User wants to select a different directory, recursively call this function
+            return await selectDirectory();
+          } else {
+            // User canceled
+            return { canceled: true, filePaths: [] };
+          }
+        }
+      } catch (error) {
+        // If we can't read the directory, it might not exist or be inaccessible
+        // In this case, we'll allow the selection and let the clone operation handle it
+        console.warn('Could not check if directory is empty:', error);
+      }
+    }
+    
+    return result;
+  };
   
-  return result;
+  return await selectDirectory();
 });
 
 // Handle running post-cleaning Git commands
