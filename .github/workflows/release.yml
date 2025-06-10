@@ -231,3 +231,79 @@ jobs:
           asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Generate and upload electron-updater metadata files
+      - name: Generate update metadata files
+        if: always() # Run even if some builds fail
+        run: |
+          npm run generate-update-files
+
+      - name: Upload latest-mac.yml
+        if: matrix.platform == 'mac' && steps.check-mac-archive.outputs.exists == 'true'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./update-files/latest-mac.yml
+          asset_name: latest-mac.yml
+          asset_content_type: application/x-yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload latest-linux.yml
+        if: matrix.platform == 'linux' && (steps.check-linux-deb.outputs.exists == 'true' || steps.check-linux-rpm.outputs.exists == 'true')
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./update-files/latest-linux.yml
+          asset_name: latest-linux.yml
+          asset_content_type: application/x-yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true # In case Linux metadata file doesn't exist
+
+      - name: Generate Windows metadata and upload
+        if: matrix.platform == 'win' && steps.check-win-artifact.outputs.exists == 'true'
+        shell: powershell
+        run: |
+          # Create latest.yml for Windows (Squirrel.Windows format)
+          $VERSION = "${{ steps.get-version-win.outputs.version }}"
+          $SETUP_FILE = "bfg-repo-cleaner-gui-$VERSION-Setup.exe"
+          
+          # Calculate file hash
+          $fileHash = Get-FileHash -Path "${{ steps.check-win-artifact.outputs.setup_path }}" -Algorithm SHA512
+          $sha512 = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($fileHash.Hash.ToLower()))
+          
+          # Get file size
+          $fileSize = (Get-Item "${{ steps.check-win-artifact.outputs.setup_path }}").Length
+          
+          # Create metadata content
+          $metadataContent = @"
+          version: $VERSION
+          files:
+            - url: $SETUP_FILE
+              sha512: $sha512
+              size: $fileSize
+          path: $SETUP_FILE
+          sha512: $sha512
+          releaseDate: '$((Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))'
+          "@
+          
+          # Ensure update-files directory exists
+          if (-not (Test-Path -Path "./update-files")) {
+            New-Item -ItemType Directory -Path "./update-files" -Force
+          }
+          
+          # Write metadata file
+          $metadataContent | Out-File -FilePath "./update-files/latest.yml" -Encoding UTF8
+          Write-Host "Generated latest.yml for Windows"
+
+      - name: Upload latest.yml (Windows)
+        if: matrix.platform == 'win' && steps.check-win-artifact.outputs.exists == 'true'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./update-files/latest.yml
+          asset_name: latest.yml
+          asset_content_type: application/x-yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -13,6 +13,10 @@ module.exports = {
     appCategoryType: 'public.app-category.developer-tools',
     osxSign: false, // Disable code signing since the app won't be signed on macOS
     osxNotarize: false, // Disable notarization
+    // Include app-update.yml in the packaged app
+    extraResource: [
+      path.join(__dirname, 'app-update.yml')
+    ],
     win32metadata: {
       CompanyName: '',
       FileDescription: 'BFG Repo-Cleaner GUI',
@@ -72,6 +76,19 @@ module.exports = {
         }
       },
     },
+  ],
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'go2engle',
+          name: 'bfg-repo-cleaner-gui'
+        },
+        prerelease: false,
+        draft: false
+      }
+    }
   ],
   plugins: [
     {

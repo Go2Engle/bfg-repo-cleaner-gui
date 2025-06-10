@@ -1,6 +1,7 @@
 import { autoUpdater } from 'electron-updater';
-import { BrowserWindow, dialog } from 'electron';
+import { BrowserWindow, dialog, app } from 'electron';
 import log from 'electron-log';
+import * as path from 'path';
 
 // Configure logging for auto-updater
 log.transports.file.level = 'info';
@@ -9,6 +10,14 @@ autoUpdater.logger = log;
 // Configure auto-updater
 autoUpdater.autoDownload = false; // Don't auto-download, ask user first
 autoUpdater.autoInstallOnAppQuit = true;
+
+// Set the update configuration file path
+const updateConfigPath = app.isPackaged
+  ? path.join(process.resourcesPath, 'app-update.yml')
+  : path.join(__dirname, '..', '..', 'app-update.yml');
+
+// Configure the updater with the config file path
+autoUpdater.updateConfigPath = updateConfigPath;
 
 export class AutoUpdater {
   private mainWindow: BrowserWindow;
