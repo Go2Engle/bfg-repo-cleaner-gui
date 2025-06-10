@@ -11,17 +11,13 @@ if (require('electron-squirrel-startup')) {
 
 let mainWindow: BrowserWindow | null = null;
 
-const createWindow = (): void => {
-  // Create the browser window
+const createWindow = (): void => {  // Create the browser window
   mainWindow = new BrowserWindow({
     width: 900,
     height: 700,
-    frame: false, // Remove the default title bar
+    frame: false, // Remove the default title bar completely
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
-    titleBarOverlay: process.platform !== 'darwin' ? {
-      color: 'transparent',
-      symbolColor: '#74b1be'
-    } : undefined,
+    // Remove titleBarOverlay for Windows to prevent default controls
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

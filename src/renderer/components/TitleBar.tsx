@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
 import './TitleBar.scss';
 
 const TitleBar: React.FC = () => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [platform, setPlatform] = useState<string>('');
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Get platform information
@@ -93,9 +95,8 @@ const TitleBar: React.FC = () => {
       </div>
     );
   };
-
   return (
-    <div className={`title-bar ${isMacOS ? 'title-bar--macos' : 'title-bar--windows'}`}>
+    <div className={`title-bar ${isMacOS ? 'title-bar--macos' : 'title-bar--windows'} theme-${theme}`} data-theme={theme}>
       {isMacOS && <div className="title-bar-traffic-light-space" />}
       
       <div className="title-bar-drag-region">
