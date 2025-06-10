@@ -23,7 +23,7 @@ A cross-platform GUI application for [BFG Repo-Cleaner](https://rtyley.github.io
 
 ### Download Pre-built Binary
 
-You can download the latest pre-built application binary for your platform from the [GitHub Releases page](https://github.com/[your-username]/bfg-repo-cleaner-gui/releases/latest).
+You can download the latest pre-built application binary for your platform from the [GitHub Releases page](https://github.com/go2engle/bfg-repo-cleaner-gui/releases/latest).
 
 Available platforms:
 - Windows (.exe installer, .zip)
