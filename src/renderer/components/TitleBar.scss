@@ -63,16 +63,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
     opacity: 0.7;
 
     &:hover {
       opacity: 1;
-      background: var(--hover-bg, rgba(255, 255, 255, 0.1));
+      background: var(--hover-bg);
     }
 
     &:active {
-      background: var(--active-bg, rgba(255, 255, 255, 0.2));
+      background: var(--active-bg);
     }
 
     svg {
@@ -98,27 +98,27 @@
   justify-content: center;
   cursor: pointer;
   color: var(--text-color);
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   opacity: 0.7;
   
   &:hover {
     opacity: 1;
-    background: var(--hover-bg, rgba(255, 255, 255, 0.1));
+    background: var(--hover-bg);
   }
   
   &:active {
-    background: var(--active-bg, rgba(255, 255, 255, 0.2));
+    background: var(--active-bg);
   }
   
   &.close:hover {
-    background: #e81123;
-    color: white;
+    background: #e81123 !important;
+    color: white !important;
     opacity: 1;
   }
   
   &.close:active {
-    background: #c50e1f;
-    color: white;
+    background: #c50e1f !important;
+    color: white !important;
   }
   
   svg {
@@ -133,10 +133,35 @@
     --hover-bg: rgba(0, 0, 0, 0.05);
     --active-bg: rgba(0, 0, 0, 0.1);
     --border-color: rgba(0, 0, 0, 0.1);
+    --text-color: #000000;
   }
   
   .title-bar--windows {
     border-bottom-color: var(--border-color);
+  }
+  
+  .title-bar-control {
+    color: #000000;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    &:active {
+      background: rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .title-bar-theme .theme-toggle {
+    color: #000000;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    &:active {
+      background: rgba(0, 0, 0, 0.1);
+    }
   }
 }
 
@@ -145,10 +170,35 @@
     --hover-bg: rgba(255, 255, 255, 0.1);
     --active-bg: rgba(255, 255, 255, 0.2);
     --border-color: rgba(255, 255, 255, 0.1);
+    --text-color: #ffffff;
   }
   
   .title-bar--windows {
     border-bottom-color: var(--border-color);
+  }
+  
+  .title-bar-control {
+    color: #ffffff;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    &:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+  
+  .title-bar-theme .theme-toggle {
+    color: #ffffff;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    &:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
   }
 }
 
