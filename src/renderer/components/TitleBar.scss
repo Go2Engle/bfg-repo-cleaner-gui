@@ -1,0 +1,174 @@
+.title-bar {
+  display: flex;
+  width: 100%;
+  height: 40px; // Slightly taller for better ergonomics
+  background: transparent; // Seamless blending
+  position: relative;
+  z-index: 1000;
+  user-select: none;
+  align-items: center;
+}
+
+// macOS specific layout
+.title-bar--macos {
+  height: 32px; // Native macOS height
+  padding-left: 80px; // Space for traffic lights
+  
+  .title-bar-traffic-light-space {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 80px;
+    height: 32px;
+    -webkit-app-region: no-drag; // Let macOS handle the traffic light area
+  }
+}
+
+// Windows/Linux specific layout
+.title-bar--windows {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.title-bar-drag-region {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  -webkit-app-region: drag; // Enable window dragging
+  cursor: default;
+}
+
+.title-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  padding: 0 16px;
+}
+
+.title-bar-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+  opacity: 0.8; // Subtle appearance like Discord
+  
+  // Hide title on smaller screens to save space
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.title-bar-theme {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag; // Disable dragging for theme toggle
+
+  .theme-toggle {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease;
+    opacity: 0.7;
+
+    &:hover {
+      opacity: 1;
+      background: var(--hover-bg, rgba(255, 255, 255, 0.1));
+    }
+
+    &:active {
+      background: var(--active-bg, rgba(255, 255, 255, 0.2));
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.title-bar-controls {
+  display: flex;
+  -webkit-app-region: no-drag; // Disable dragging for controls
+  height: 100%;
+}
+
+.title-bar-control {
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-color);
+  transition: background-color 0.15s ease;
+  opacity: 0.7;
+  
+  &:hover {
+    opacity: 1;
+    background: var(--hover-bg, rgba(255, 255, 255, 0.1));
+  }
+  
+  &:active {
+    background: var(--active-bg, rgba(255, 255, 255, 0.2));
+  }
+  
+  &.close:hover {
+    background: #e81123;
+    color: white;
+    opacity: 1;
+  }
+  
+  &.close:active {
+    background: #c50e1f;
+    color: white;
+  }
+  
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+// Theme-specific styling
+[data-theme="light"] {
+  .title-bar {
+    --hover-bg: rgba(0, 0, 0, 0.05);
+    --active-bg: rgba(0, 0, 0, 0.1);
+    --border-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .title-bar--windows {
+    border-bottom-color: var(--border-color);
+  }
+}
+
+[data-theme="dark"] {
+  .title-bar {
+    --hover-bg: rgba(255, 255, 255, 0.1);
+    --active-bg: rgba(255, 255, 255, 0.2);
+    --border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .title-bar--windows {
+    border-bottom-color: var(--border-color);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 600px) {
+  .title-bar--windows {
+    .title-bar-control {
+      width: 40px; // Slightly smaller on mobile
+    }
+  }
+}

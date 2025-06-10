@@ -21,5 +21,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }) => ipcRenderer.invoke('run-post-cleaning-commands', options),
   resetAndCleanup: (options: {
     repoPath: string;
-  }) => ipcRenderer.invoke('reset-and-cleanup', options)
+  }) => ipcRenderer.invoke('reset-and-cleanup', options),
+  // Window controls
+  windowMinimize: () => ipcRenderer.invoke('window-minimize'),
+  windowMaximize: () => ipcRenderer.invoke('window-maximize'),
+  windowClose: () => ipcRenderer.invoke('window-close'),
+  windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  // Window state listener
+  onWindowMaximized: (callback: (isMaximized: boolean) => void) => {
+    ipcRenderer.on('window-maximized', (_, isMaximized) => callback(isMaximized));
+  },
+  // Platform information
+  getPlatform: () => process.platform
 });
