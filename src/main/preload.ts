@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import { UpdaterEvents } from '../shared/types';
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -40,6 +41,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Window state listener
   onWindowMaximized: (callback: (isMaximized: boolean) => void) => {
     ipcRenderer.on('window-maximized', (_, isMaximized) => callback(isMaximized));
+  },
+  // Auto-updater
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  // Auto-updater event listeners
+  onUpdateAvailable: (callback: (updateInfo: UpdaterEvents['update-available']) => void) => {
+    ipcRenderer.on('update-available', (_, updateInfo) => callback(updateInfo));
+  },
+  onUpdateNotAvailable: (callback: () => void) => {
+    ipcRenderer.on('update-not-available', () => callback());
+  },
+  onUpdateDownloaded: (callback: (info: UpdaterEvents['update-downloaded']) => void) => {
+    ipcRenderer.on('update-downloaded', (_, info) => callback(info));
+  },
+  onDownloadProgress: (callback: (progress: UpdaterEvents['download-progress']) => void) => {
+    ipcRenderer.on('download-progress', (_, progress) => callback(progress));
+  },
+  onUpdateError: (callback: (error: UpdaterEvents['update-error']) => void) => {
+    ipcRenderer.on('update-error', (_, error) => callback(error));
   },
   // Platform information
   getPlatform: () => process.platform

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './styles/App.scss';
 import { ThemeProvider } from './context/ThemeContext';
 import TitleBar from './components/TitleBar';
+import UpdateIcon from './components/UpdateIcon';
 
 // Define the type for the window.electronAPI
 declare global {
@@ -74,6 +75,16 @@ declare global {
       windowClose: () => Promise<void>;
       windowIsMaximized: () => Promise<boolean>;
       onWindowMaximized: (callback: (isMaximized: boolean) => void) => void;
+      // Auto-updater
+      checkForUpdates?: () => Promise<void>;
+      downloadUpdate?: () => Promise<void>;
+      installUpdate?: () => Promise<void>;
+      getAppVersion?: () => Promise<string>;
+      onUpdateAvailable?: (callback: (updateInfo: any) => void) => void;
+      onUpdateNotAvailable?: (callback: () => void) => void;
+      onUpdateDownloaded?: (callback: (info: any) => void) => void;
+      onDownloadProgress?: (callback: (progress: any) => void) => void;
+      onUpdateError?: (callback: (error: any) => void) => void;
       // Platform information
       getPlatform: () => string;
     };
@@ -96,12 +107,28 @@ const AppContent: React.FC = () => {
   const [isResetting, setIsResetting] = useState<boolean>(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [appVersion, setAppVersion] = useState<string>('');
   
   // New state for secret checking workflow
   const [isCheckingSecrets, setIsCheckingSecrets] = useState<boolean>(false);
   const [foundSecrets, setFoundSecrets] = useState<Array<{secret: string, files: string[]}>>([]);
   const [showSecretWarning, setShowSecretWarning] = useState<boolean>(false);
   const [isCleaningSecrets, setIsCleaningSecrets] = useState<boolean>(false);
+
+  // Get app version on component mount
+  React.useEffect(() => {
+    const getVersion = async () => {
+      try {
+        if (window.electronAPI.getAppVersion) {
+          const version = await window.electronAPI.getAppVersion();
+          setAppVersion(version);
+        }
+      } catch (error) {
+        console.error('Failed to get app version:', error);
+      }
+    };
+    getVersion();
+  }, []);
 
   // Repository selection is now only through cloning
 
@@ -611,7 +638,17 @@ const AppContent: React.FC = () => {
       </div>
 
       <footer className="footer">
-        <p>BFG Repo-Cleaner GUI © 2025 | <a href="https://github.com/rtyley/bfg-repo-cleaner" target="_blank" rel="noopener noreferrer">BFG Documentation</a></p>
+        <div className="footer__content">
+          <div className="footer__left">
+            <p>BFG Repo-Cleaner GUI © 2025 | <a href="https://github.com/rtyley/bfg-repo-cleaner" target="_blank" rel="noopener noreferrer">BFG Documentation</a></p>
+          </div>
+          <div className="footer__center">
+            <span className="footer__version">{appVersion ? `v${appVersion}` : 'v1.4.0'}</span>
+          </div>
+          <div className="footer__right">
+            <UpdateIcon />
+          </div>
+        </div>
       </footer>
         </div>
       </div>
