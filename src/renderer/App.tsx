@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './styles/App.scss';
 import { ThemeProvider } from './context/ThemeContext';
 import TitleBar from './components/TitleBar';
+import { UpdateNotification } from './components/UpdateNotification';
 
 // Define the type for the window.electronAPI
 declare global {
@@ -74,6 +75,16 @@ declare global {
       windowClose: () => Promise<void>;
       windowIsMaximized: () => Promise<boolean>;
       onWindowMaximized: (callback: (isMaximized: boolean) => void) => void;
+      // Auto-updater
+      checkForUpdates?: () => Promise<void>;
+      downloadUpdate?: () => Promise<void>;
+      installUpdate?: () => Promise<void>;
+      getAppVersion?: () => Promise<string>;
+      onUpdateAvailable?: (callback: (updateInfo: any) => void) => void;
+      onUpdateNotAvailable?: (callback: () => void) => void;
+      onUpdateDownloaded?: (callback: (info: any) => void) => void;
+      onDownloadProgress?: (callback: (progress: any) => void) => void;
+      onUpdateError?: (callback: (error: any) => void) => void;
       // Platform information
       getPlatform: () => string;
     };
@@ -386,6 +397,7 @@ const AppContent: React.FC = () => {
           <header className="header">
             <h1>BFG Repo-Cleaner GUI</h1>
             <p className="subtitle">Clean your Git repository of large files & sensitive data</p>
+            <UpdateNotification />
           </header>
 
       <div className="main">

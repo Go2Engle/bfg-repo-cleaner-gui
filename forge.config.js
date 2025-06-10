@@ -35,22 +35,42 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        // Configuration for Windows Squirrel.Windows updates
+        setupExe: 'bfg-repo-cleaner-gui-setup.exe',
+        setupIcon: path.join(__dirname, 'icons/win/icon.ico'),
+        iconUrl: 'https://your-domain.com/icon.ico', // Replace with your actual icon URL
+        remoteReleases: 'https://your-update-server.com/releases', // Replace with your update server
+        loadingGif: path.join(__dirname, 'assets/loading.gif') // Optional loading animation
+      },
     },
     {
       name: '@electron-forge/maker-zip',
       platforms: ['darwin'],
       config: {
+        // Configuration for macOS updates (used with electron-updater)
         targets: ['zip'],
       }
     },
     {
       name: '@electron-forge/maker-deb',
-      config: {},
+      config: {
+        // Configuration for Linux .deb packages
+        options: {
+          maintainer: 'Chris Engle',
+          homepage: 'https://github.com/cengle/bfg-repo-cleaner-gui'
+        }
+      },
     },
     {
       name: '@electron-forge/maker-rpm',
-      config: {},
+      config: {
+        // Configuration for Linux .rpm packages
+        options: {
+          maintainer: 'Chris Engle',
+          homepage: 'https://github.com/cengle/bfg-repo-cleaner-gui'
+        }
+      },
     },
   ],
   plugins: [
