@@ -135,11 +135,17 @@ ipcMain.handle('clean-repository', async (event, options) => {
     // Execute the command
     const { stdout, stderr } = await execPromise(command);
     
+    // Check if BFG found nothing to clean
+    const combinedOutput = `${stdout}\n${stderr}`.toLowerCase();
+    const isNothingToDo = combinedOutput.includes('no refs to update - no dirty commits found') ||
+                         combinedOutput.includes('bfg aborting: no refs to update');
+    
     return {
       success: true,
       message: 'Repository cleaned successfully',
       output: stdout,
-      error: stderr
+      error: stderr,
+      nothingToDo: isNothingToDo
     };
   } catch (error) {
     return {

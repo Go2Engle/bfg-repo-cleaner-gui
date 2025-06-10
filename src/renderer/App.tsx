@@ -30,6 +30,7 @@ declare global {
         message: string;
         output?: string;
         error?: string;
+        nothingToDo?: boolean;
       }>;
       runPostCleaningCommands: (options: {
         repoPath: string;
@@ -286,8 +287,10 @@ const AppContent: React.FC = () => {
       if (response.success) {
         const resultText = `${response.message}\n\n${response.output || ''}`;
         setResult(prev => prev ? `${prev}\n\n==== BFG Cleaning ====\n${resultText}` : resultText);
-        // Show the option to run post-cleaning commands
-        setShowPostCleaningOption(true);
+        // Only show the option to run post-cleaning commands if something was actually cleaned
+        if (!response.nothingToDo) {
+          setShowPostCleaningOption(true);
+        }
       } else {
         setError(`${response.message}\n${response.error || ''}`);
       }
