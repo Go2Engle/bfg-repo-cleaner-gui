@@ -6,18 +6,16 @@ import TitleBar from './components/TitleBar';
 // Define the type for the window.electronAPI
 declare global {
   interface Window {
-    electronAPI: {
-      selectRepository: () => Promise<{ canceled: boolean; filePaths: string[] }>;
+    electronAPI: {      selectRepository: () => Promise<{ canceled: boolean; filePaths: string[] }>;
       selectBfgJar: () => Promise<{ canceled: boolean; filePaths: string[] }>;
-      selectCloneDirectory: () => Promise<{ canceled: boolean; filePaths: string[] }>;
       cloneRepository: (options: {
         repoUrl: string;
-        targetDir: string;
       }) => Promise<{
         success: boolean;
         message: string;
         output?: string;
         repoPath?: string;
+        targetDir?: string;
         error?: string;
       }>;
       cleanRepository: (options: {
@@ -59,7 +57,6 @@ declare global {
         repoPath: string;
         secrets: string[];
         repoUrl: string;
-        targetDir: string;
       }) => Promise<{
         success: boolean;
         message: string;
@@ -89,8 +86,7 @@ declare global {
         path?: string;
         message: string;
         error?: string;
-      }>;
-      onBfgStatusUpdate: (callback: (status: {
+      }>;      onBfgStatusUpdate: (callback: (status: {
         isAvailable: boolean;
         version: string | null;
         path: string | null;
@@ -98,6 +94,16 @@ declare global {
         error: string | null;
         message?: string;
       }) => void) => void;
+      // Working Directory Manager APIs
+      workingDirGetStatus: () => Promise<{
+        isReady: boolean;
+        path: string | null;
+        error: string | null;
+      }>;
+      workingDirClean: () => Promise<{
+        success: boolean;
+        message: string;
+      }>;
       // Window controls
       windowMinimize: () => Promise<void>;
       windowMaximize: () => Promise<void>;
@@ -110,11 +116,9 @@ declare global {
   }
 }
 
-const AppContent: React.FC = () => {
-  // State
+const AppContent: React.FC = () => {  // State
   const [repoPath, setRepoPath] = useState<string>('');
   const [repoUrl, setRepoUrl] = useState<string>('');
-  const [targetDir, setTargetDir] = useState<string>('');
   const [bfgPath, setBfgPath] = useState<string>('');
   const [replacements, setReplacements] = useState<string>('');
   const [fileSizes, setFileSizes] = useState<string>('');
@@ -177,33 +181,21 @@ const AppContent: React.FC = () => {
       setBfgPath(bfgStatus.path);
     }
   }, [bfgStatus.isAvailable, bfgStatus.path, bfgPath]);
-
   // Repository selection is now only through cloning
-
-  // Handle selecting target directory for cloning
-  const handleSelectCloneDirectory = async () => {
-    const result = await window.electronAPI.selectCloneDirectory();
-    if (!result.canceled && result.filePaths.length > 0) {
-      setTargetDir(result.filePaths[0]);
-    }
-  };
 
   // Handle cloning repository
   const handleCloneRepository = async () => {
-    if (!repoUrl || !targetDir) {
-      setError('Please provide both repository URL and target directory.');
+    if (!repoUrl) {
+      setError('Please provide a repository URL.');
       return;
     }
 
     try {
       setIsCloning(true);
       setResult(null);
-      setError(null);
-
-      // Call the main process to clone the repository
+      setError(null);      // Call the main process to clone the repository
       const response = await window.electronAPI.cloneRepository({
-        repoUrl,
-        targetDir
+        repoUrl
       });
 
       if (response.success) {
@@ -334,13 +326,10 @@ const AppContent: React.FC = () => {
       const textReplacements = replacements
         .split('\n')
         .map(line => line.trim())
-        .filter(line => line.length > 0);
-
-      const response = await window.electronAPI.cleanSecretsFromHead({
+        .filter(line => line.length > 0);      const response = await window.electronAPI.cleanSecretsFromHead({
         repoPath,
         secrets: textReplacements,
-        repoUrl,
-        targetDir
+        repoUrl
       });
 
       if (response.success) {
@@ -461,11 +450,9 @@ const AppContent: React.FC = () => {
           repoPath
         });
       }
-      
-      // Reset all state variables except bfgPath and targetDir
+        // Reset all state variables except bfgPath
       setRepoPath('');
       setRepoUrl('');
-      // Don't clear target directory: setTargetDir('');
       setReplacements('');
       setFileSizes('');
       setResult(null);
@@ -529,32 +516,17 @@ const AppContent: React.FC = () => {
               value={repoUrl} 
               onChange={(e) => setRepoUrl(e.target.value)} 
               placeholder="https://github.com/username/repository.git" 
-            />
-            <p className="help-text">Enter the URL of the Git repository to clone</p>
+            />            <p className="help-text">Enter the URL of the Git repository to clone. The repository will be automatically cloned to a managed working directory.</p>
           </div>
-          
-          <div className="form-group">
-            <label>Target Directory:</label>
-            <div className="input-with-button">
-              <input 
-                type="text" 
-                value={targetDir} 
-                onChange={(e) => setTargetDir(e.target.value)} 
-                placeholder="Select directory to clone into" 
-              />
-              <button onClick={handleSelectCloneDirectory}>Browse</button>
-            </div>
-            <p className="help-text">Select where to clone the repository - this should be an empty folder for the tool to work properly</p>
-          </div>
-          
+
           <div className="clone-actions">
             <button 
               className={`clone-button ${cloneStatus === 'success' ? 'success' : ''} ${cloneStatus === 'error' ? 'error' : ''}`}
               onClick={handleCloneRepository}
-              disabled={isCloning || !repoUrl || !targetDir || cloneStatus === 'success'}
+              disabled={isCloning || !repoUrl || cloneStatus === 'success'}
             >
               {isCloning ? 'Cloning...' : 
-               cloneStatus === 'success' ? 'Cloned' : 
+               cloneStatus === 'success' ? 'Cloned' :
                cloneStatus === 'error' ? 'Error - Try Again' : 
                'Clone Repository'}
             </button>
