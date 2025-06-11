@@ -5,10 +5,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('electronAPI', {
   selectRepository: () => ipcRenderer.invoke('select-repository'),
   selectBfgJar: () => ipcRenderer.invoke('select-bfg-jar'),
-  selectCloneDirectory: () => ipcRenderer.invoke('select-clone-directory'),
   cloneRepository: (options: {
     repoUrl: string;
-    targetDir: string;
   }) => ipcRenderer.invoke('clone-repository', options),
   cleanRepository: (options: {
     repoPath: string;
@@ -25,13 +23,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkSecretsInHead: (options: {
     repoPath: string;
     secrets: string[];
-  }) => ipcRenderer.invoke('check-secrets-in-head', options),
-  cleanSecretsFromHead: (options: {
+  }) => ipcRenderer.invoke('check-secrets-in-head', options),  cleanSecretsFromHead: (options: {
     repoPath: string;
     secrets: string[];
     repoUrl: string;
     targetDir: string;
   }) => ipcRenderer.invoke('clean-secrets-from-head', options),
+  // BFG Manager APIs
+  bfgGetStatus: () => ipcRenderer.invoke('bfg-get-status'),
+  bfgCheckUpdate: () => ipcRenderer.invoke('bfg-check-update'),
+  bfgGetAvailableVersions: () => ipcRenderer.invoke('bfg-get-available-versions'),
+  bfgDownloadVersion: (version: string) => ipcRenderer.invoke('bfg-download-version', version),  // BFG status listener
+  onBfgStatusUpdate: (callback: (status: any) => void) => {
+    ipcRenderer.on('bfg-status-update', (_, status) => callback(status));
+  },
+  // Working Directory Manager APIs
+  workingDirGetStatus: () => ipcRenderer.invoke('working-dir-get-status'),
+  workingDirClean: () => ipcRenderer.invoke('working-dir-clean'),
   // Window controls
   windowMinimize: () => ipcRenderer.invoke('window-minimize'),
   windowMaximize: () => ipcRenderer.invoke('window-maximize'),

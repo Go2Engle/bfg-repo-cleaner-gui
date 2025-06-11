@@ -3,6 +3,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { BFGManager } from './bfg-manager';
+import { WorkingDirectoryManager } from './working-directory-manager';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -10,6 +12,8 @@ if (require('electron-squirrel-startup')) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let bfgManager: BFGManager;
+let workingDirManager: WorkingDirectoryManager;
 
 const createWindow = (): void => {  // Create the browser window
   mainWindow = new BrowserWindow({
@@ -31,10 +35,14 @@ const createWindow = (): void => {  // Create the browser window
 
   // Load the index.html of the app
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
-
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show();
+      // Initialize BFG manager and check for updates
+    initializeBFGManager();
+    
+    // Initialize working directory manager
+    initializeWorkingDirectory();
   });
 
   // Set up window event listeners to sync state with renderer
@@ -97,8 +105,159 @@ ipcMain.handle('window-is-maximized', () => {
   return mainWindow ? mainWindow.isMaximized() : false;
 });
 
+// BFG Manager IPC handlers
+ipcMain.handle('bfg-get-status', () => {
+  if (!bfgManager) {
+    return { isAvailable: false, version: null, path: null, isDownloading: false, error: 'BFG Manager not initialized' };
+  }
+  return bfgManager.getStatus();
+});
+
+ipcMain.handle('bfg-check-update', async () => {
+  if (!bfgManager) {
+    return { success: false, message: 'BFG Manager not initialized' };
+  }
+  
+  try {
+    const result = await bfgManager.checkAndUpdateBFG();
+    
+    // Send status update to renderer
+    if (mainWindow) {
+      const status = bfgManager.getStatus();
+      mainWindow.webContents.send('bfg-status-update', { 
+        ...status, 
+        message: result.message 
+      });
+    }
+    
+    return result;
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : String(error) 
+    };
+  }
+});
+
+ipcMain.handle('bfg-get-available-versions', async () => {
+  if (!bfgManager) {
+    return [];
+  }
+  
+  try {
+    return await bfgManager.getAvailableVersions();
+  } catch (error) {
+    console.error('Error getting available BFG versions:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('bfg-download-version', async (event, version: string) => {
+  if (!bfgManager) {
+    return { success: false, message: 'BFG Manager not initialized' };
+  }
+  
+  try {
+    const result = await bfgManager.downloadSpecificVersion(version);
+    
+    // Send status update to renderer
+    if (mainWindow) {
+      const status = bfgManager.getStatus();
+      mainWindow.webContents.send('bfg-status-update', { 
+        ...status, 
+        message: result.message 
+      });
+    }
+    
+    return result;
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : String(error) 
+    };  }
+});
+
+// Working Directory Manager IPC handlers
+ipcMain.handle('working-dir-get-status', () => {
+  if (!workingDirManager) {
+    return { isReady: false, path: null, error: 'Working Directory Manager not initialized' };
+  }
+  
+  return {
+    isReady: workingDirManager.isReady(),
+    path: workingDirManager.getPath(),
+    error: null
+  };
+});
+
+ipcMain.handle('working-dir-clean', () => {
+  if (!workingDirManager) {
+    return { success: false, message: 'Working Directory Manager not initialized' };
+  }
+  
+  try {
+    workingDirManager.cleanWorkingDirectory();
+    return { success: true, message: 'Working directory cleaned successfully' };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : String(error) 
+    };
+  }
+});
+
 // Check for BFG jar existence and version
 const execPromise = promisify(exec);
+
+// Initialize BFG Manager
+async function initializeBFGManager(): Promise<void> {
+  try {
+    bfgManager = BFGManager.getInstance();
+    console.log('Initializing BFG Manager...');
+    
+    // Send status update to renderer
+    if (mainWindow) {
+      mainWindow.webContents.send('bfg-status-update', { 
+        isDownloading: true, 
+        message: 'Checking for BFG updates...' 
+      });
+    }
+    
+    const result = await bfgManager.checkAndUpdateBFG();
+    console.log('BFG Manager initialization result:', result);
+    
+    // Send final status to renderer
+    if (mainWindow) {
+      const status = bfgManager.getStatus();
+      mainWindow.webContents.send('bfg-status-update', { 
+        ...status, 
+        message: result.message 
+      });
+    }
+  } catch (error) {
+    console.error('Error initializing BFG Manager:', error);
+    if (mainWindow) {
+      mainWindow.webContents.send('bfg-status-update', { 
+        isAvailable: false,
+        isDownloading: false,
+        error: error instanceof Error ? error.message : String(error),
+        message: 'Failed to initialize BFG'
+      });
+    }  }
+}
+
+// Initialize Working Directory Manager
+function initializeWorkingDirectory(): void {
+  try {
+    workingDirManager = WorkingDirectoryManager.getInstance();
+    console.log('Working Directory Manager initialized');
+    
+    // Clean up old repositories (older than 24 hours)
+    workingDirManager.cleanupOldRepositories(24);
+  } catch (error) {
+    console.error('Error initializing Working Directory Manager:', error);
+  }
+}
 
 // Handle repository cleaning request
 ipcMain.handle('clean-repository', async (event, options) => {
@@ -109,12 +268,21 @@ ipcMain.handle('clean-repository', async (event, options) => {
       return { success: false, message: 'Repository path does not exist' };
     }
     
-    if (!fs.existsSync(bfgPath)) {
-      return { success: false, message: 'BFG jar file path does not exist' };
+    // Use provided bfgPath or get from BFG manager
+    let actualBfgPath = bfgPath;
+    if (!actualBfgPath && bfgManager) {
+      const status = bfgManager.getStatus();
+      if (status.isAvailable && status.path) {
+        actualBfgPath = status.path;
+      }
+    }
+    
+    if (!actualBfgPath || !fs.existsSync(actualBfgPath)) {
+      return { success: false, message: 'BFG jar file not available. Please ensure BFG is downloaded.' };
     }
     
     // Construct the BFG command based on user options
-    let command = `java -jar "${bfgPath}" `;
+    let command = `java -jar "${actualBfgPath}" `;
     
     // Add text replacements if any
     if (textReplacements && textReplacements.length > 0) {
@@ -186,23 +354,26 @@ ipcMain.handle('select-bfg-jar', async () => {
 // Handle cloning a repository with --mirror
 ipcMain.handle('clone-repository', async (event, options) => {
   try {
-    const { repoUrl, targetDir } = options;
+    const { repoUrl } = options;
     
     if (!repoUrl) {
       return { success: false, message: 'Repository URL is required' };
     }
 
-    // Create target directory if it doesn't exist
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true });
+    if (!workingDirManager || !workingDirManager.isReady()) {
+      return { success: false, message: 'Working directory not ready' };
     }
+
+    // Create a unique directory name for this repository
+    const repoDirName = workingDirManager.getRepositoryDirectoryName(repoUrl);
+    const cloneDir = path.join(workingDirManager.getPath(), `${repoDirName}.git`);
     
-    // Generate a directory name based on the repo URL
-    const repoName = repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'cloned-repo';
-    const cloneDir = path.join(targetDir, `${repoName}.git`);
+    // Ensure the parent directory exists
+    fs.mkdirSync(path.dirname(cloneDir), { recursive: true });
     
     // Construct the git clone command with --mirror
     const command = `git clone --mirror "${repoUrl}" "${cloneDir}"`;
+    console.log(`Cloning repository to: ${cloneDir}`);
     
     // Execute the command
     const { stdout, stderr } = await execPromise(command);
@@ -212,6 +383,7 @@ ipcMain.handle('clone-repository', async (event, options) => {
       message: 'Repository cloned successfully with --mirror',
       output: stdout,
       repoPath: cloneDir,
+      targetDir: workingDirManager.getPath(), // Return working dir for consistency
       error: stderr
     };
   } catch (error) {
@@ -221,63 +393,6 @@ ipcMain.handle('clone-repository', async (event, options) => {
       error: error instanceof Error ? error.message : String(error)
     };
   }
-});
-
-// Handle directory selection for clone target
-ipcMain.handle('select-clone-directory', async () => {
-  if (!mainWindow) return { canceled: true };
-  
-  const selectDirectory = async (): Promise<{ canceled: boolean; filePaths: string[] }> => {
-    const result = await dialog.showOpenDialog(mainWindow!, {
-      properties: ['openDirectory'],
-      title: 'Select Directory to Clone Repository Into'
-    });
-    
-    if (!result.canceled && result.filePaths.length > 0) {
-      const selectedPath = result.filePaths[0];
-      
-      try {
-        // Check if directory is empty (ignoring hidden files and system files)
-        const files = fs.readdirSync(selectedPath);
-        const visibleFiles = files.filter(file => {
-          // Filter out hidden files (starting with .) and common system files
-          return !file.startsWith('.') && 
-                 file !== 'Thumbs.db' && 
-                 file !== 'desktop.ini' &&
-                 file !== '$RECYCLE.BIN';
-        });
-        
-        if (visibleFiles.length > 0) {
-          // Directory is not empty, show warning dialog
-          const warningResult = await dialog.showMessageBox(mainWindow!, {
-            type: 'warning',
-            title: 'Directory Not Empty',
-            message: 'The selected directory is not empty.',
-            detail: `For the BFG Repo-Cleaner to work properly, it needs to clone the repository into an empty directory. The selected directory contains: ${visibleFiles.slice(0, 5).join(', ')}${visibleFiles.length > 5 ? '...' : ''}. Please select an empty directory or create a new one.`,
-            buttons: ['Select Different Directory', 'Cancel'],
-            defaultId: 0,
-            cancelId: 1
-          });
-          
-          if (warningResult.response === 0) {
-            // User wants to select a different directory, recursively call this function
-            return await selectDirectory();
-          } else {
-            // User canceled
-            return { canceled: true, filePaths: [] };
-          }
-        }
-      } catch (error) {
-        // If we can't read the directory, it might not exist or be inaccessible
-        // In this case, we'll allow the selection and let the clone operation handle it
-        console.warn('Could not check if directory is empty:', error);
-      }
-    }
-    
-    return result;
-  };
-  
-  return await selectDirectory();
 });
 
 // Handle running post-cleaning Git commands
@@ -464,7 +579,7 @@ ipcMain.handle('check-secrets-in-head', async (event, options) => {
 // Handle cleaning secrets from HEAD branch
 ipcMain.handle('clean-secrets-from-head', async (event, options) => {
   try {
-    const { repoPath, secrets, repoUrl, targetDir } = options;
+    const { repoPath, secrets, repoUrl } = options;
     
     if (!fs.existsSync(repoPath)) {
       return { success: false, message: 'Repository path does not exist' };
