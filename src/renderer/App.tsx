@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './styles/App.scss';
 import { ThemeProvider } from './context/ThemeContext';
 import TitleBar from './components/TitleBar';
@@ -55,8 +55,7 @@ declare global {
         foundSecrets: Array<{secret: string, files: string[]}>;
         message: string;
         error?: string;
-      }>;
-      cleanSecretsFromHead: (options: {
+      }>;      cleanSecretsFromHead: (options: {
         repoPath: string;
         secrets: string[];
         repoUrl: string;
@@ -68,6 +67,37 @@ declare global {
         replacementsMade: boolean;
         error?: string;
       }>;
+      // BFG Manager APIs
+      bfgGetStatus: () => Promise<{
+        isAvailable: boolean;
+        version: string | null;
+        path: string | null;
+        isDownloading: boolean;
+        error: string | null;
+      }>;
+      bfgCheckUpdate: () => Promise<{
+        success: boolean;
+        version?: string;
+        path?: string;
+        message: string;
+        error?: string;
+      }>;
+      bfgGetAvailableVersions: () => Promise<string[]>;
+      bfgDownloadVersion: (version: string) => Promise<{
+        success: boolean;
+        version?: string;
+        path?: string;
+        message: string;
+        error?: string;
+      }>;
+      onBfgStatusUpdate: (callback: (status: {
+        isAvailable: boolean;
+        version: string | null;
+        path: string | null;
+        isDownloading: boolean;
+        error: string | null;
+        message?: string;
+      }) => void) => void;
       // Window controls
       windowMinimize: () => Promise<void>;
       windowMaximize: () => Promise<void>;
@@ -100,8 +130,53 @@ const AppContent: React.FC = () => {
   // New state for secret checking workflow
   const [isCheckingSecrets, setIsCheckingSecrets] = useState<boolean>(false);
   const [foundSecrets, setFoundSecrets] = useState<Array<{secret: string, files: string[]}>>([]);
-  const [showSecretWarning, setShowSecretWarning] = useState<boolean>(false);
-  const [isCleaningSecrets, setIsCleaningSecrets] = useState<boolean>(false);
+  const [showSecretWarning, setShowSecretWarning] = useState<boolean>(false);  const [isCleaningSecrets, setIsCleaningSecrets] = useState<boolean>(false);
+
+  // BFG Manager state
+  const [bfgStatus, setBfgStatus] = useState<{
+    isAvailable: boolean;
+    version: string | null;
+    path: string | null;
+    isDownloading: boolean;
+    error: string | null;
+    message?: string;
+  }>({
+    isAvailable: false,
+    version: null,
+    path: null,
+    isDownloading: false,    error: null
+  });
+
+  // Initialize BFG status and listen for updates
+  useEffect(() => {
+    // Get initial BFG status
+    const initializeBfgStatus = async () => {
+      try {
+        const status = await window.electronAPI.bfgGetStatus();
+        setBfgStatus(status);
+      } catch (error) {
+        console.error('Error getting initial BFG status:', error);
+        setBfgStatus(prev => ({ 
+          ...prev, 
+          error: error instanceof Error ? error.message : String(error) 
+        }));
+      }
+    };
+
+    initializeBfgStatus();
+
+    // Listen for BFG status updates
+    window.electronAPI.onBfgStatusUpdate((status) => {
+      setBfgStatus(prev => ({ ...prev, ...status }));
+    });
+  }, []);
+
+  // Auto-set BFG path when it becomes available
+  useEffect(() => {
+    if (bfgStatus.isAvailable && bfgStatus.path && !bfgPath) {
+      setBfgPath(bfgStatus.path);
+    }
+  }, [bfgStatus.isAvailable, bfgStatus.path, bfgPath]);
 
   // Repository selection is now only through cloning
 
@@ -153,19 +228,38 @@ const AppContent: React.FC = () => {
       setIsCloning(false);
     }
   };
+  // Handle checking for BFG updates
+  const handleCheckBfgUpdate = async () => {
+    try {
+      const result = await window.electronAPI.bfgCheckUpdate();
+      if (result.success && result.path) {
+        setBfgPath(result.path);
+      }
+      // Status will be updated via the listener
+    } catch (error) {
+      console.error('Error checking for BFG update:', error);
+    }
+  };
 
-  // Handle selecting BFG jar file
+  // Handle selecting BFG jar file (fallback option)
   const handleSelectBfgJar = async () => {
     const result = await window.electronAPI.selectBfgJar();
     if (!result.canceled && result.filePaths.length > 0) {
       setBfgPath(result.filePaths[0]);
     }
   };
-
   // Handle cleaning repository - updated to check for secrets first
   const handleCleanRepository = async () => {
-    if (!repoPath || !bfgPath) {
-      setError('Please clone the repository and select the BFG jar file path.');
+    if (!repoPath) {
+      setError('Please clone the repository first.');
+      return;
+    }
+
+    // Use automatic BFG path if available, otherwise require manual selection
+    const effectiveBfgPath = bfgStatus.isAvailable && bfgStatus.path ? bfgStatus.path : bfgPath;
+    
+    if (!effectiveBfgPath) {
+      setError('BFG jar file is not available. Please wait for automatic download or select manually.');
       return;
     }
 
@@ -212,17 +306,23 @@ const AppContent: React.FC = () => {
         return;
       } finally {
         setIsCheckingSecrets(false);
-      }
-    }
+      }    }
 
     // Proceed with BFG cleaning
-    await proceedWithBfgCleaning(textReplacements);
+    await proceedWithBfgCleaning(textReplacements, effectiveBfgPath);
   };
-
   // Handle cleaning secrets from HEAD branch
   const handleCleanSecretsFromHead = async () => {
     if (!repoPath || !repoUrl) {
       setError('Repository path or URL is missing.');
+      return;
+    }
+
+    // Use automatic BFG path if available, otherwise require manual selection
+    const effectiveBfgPath = bfgStatus.isAvailable && bfgStatus.path ? bfgStatus.path : bfgPath;
+    
+    if (!effectiveBfgPath) {
+      setError('BFG jar file is not available. Please wait for automatic download or select manually.');
       return;
     }
 
@@ -247,11 +347,10 @@ const AppContent: React.FC = () => {
         setResult(`${response.message}\n\n${response.output || ''}`);
         setShowSecretWarning(false);
         setFoundSecrets([]);
-        
-        if (response.replacementsMade) {
+          if (response.replacementsMade) {
           // Repository was re-cloned, proceed with BFG cleaning
           setResult(prev => `${prev}\n\nProceeding with BFG cleaning...`);
-          await proceedWithBfgCleaning(textReplacements);
+          await proceedWithBfgCleaning(textReplacements, effectiveBfgPath);
         }
       } else {
         setError(`${response.message}\n${response.error || ''}`);
@@ -269,17 +368,24 @@ const AppContent: React.FC = () => {
     setFoundSecrets([]);
     setResult('Operation aborted by user - secrets found in HEAD branch');
   };
-
   // Extracted BFG cleaning logic
-  const proceedWithBfgCleaning = async (textReplacements: string[]) => {
+  const proceedWithBfgCleaning = async (textReplacements: string[], bfgJarPath?: string) => {
     try {
       setIsProcessing(true);
       setShowPostCleaningOption(false);
 
+      // Use provided path or determine the effective BFG path
+      const effectiveBfgPath = bfgJarPath || (bfgStatus.isAvailable && bfgStatus.path ? bfgStatus.path : bfgPath);
+      
+      if (!effectiveBfgPath) {
+        setError('BFG jar file is not available.');
+        return;
+      }
+
       // Call the main process to execute BFG
       const response = await window.electronAPI.cleanRepository({
         repoPath,
-        bfgPath,
+        bfgPath: effectiveBfgPath,
         textReplacements,
         fileSizes
       });
@@ -452,29 +558,79 @@ const AppContent: React.FC = () => {
                cloneStatus === 'error' ? 'Error - Try Again' : 
                'Clone Repository'}
             </button>
-          </div>
-
-          <div className="form-group">
-            <label>BFG JAR File Path:</label>
-            <div className="input-with-button">
-              <input 
-                type="text" 
-                value={bfgPath} 
-                onChange={(e) => setBfgPath(e.target.value)} 
-                placeholder="Select or enter path to bfg-x.x.x.jar" 
-              />
-              <button onClick={handleSelectBfgJar}>Browse</button>
+          </div>          <div className="form-group">
+            <label>BFG JAR Status:</label>
+            <div className="bfg-status-section">
+              {bfgStatus.isDownloading ? (
+                <div className="bfg-status downloading">
+                  <span className="status-icon">⏳</span>
+                  <span className="status-text">Downloading BFG...</span>
+                  {bfgStatus.message && <span className="status-message">{bfgStatus.message}</span>}
+                </div>
+              ) : bfgStatus.isAvailable ? (
+                <div className="bfg-status available">
+                  <span className="status-icon">✅</span>
+                  <span className="status-text">BFG v{bfgStatus.version} ready</span>
+                  <button 
+                    className="update-button" 
+                    onClick={handleCheckBfgUpdate}
+                    disabled={bfgStatus.isDownloading}
+                  >
+                    Check for Updates
+                  </button>
+                </div>
+              ) : bfgStatus.error ? (
+                <div className="bfg-status error">
+                  <span className="status-icon">❌</span>
+                  <span className="status-text">Error: {bfgStatus.error}</span>
+                  <button 
+                    className="retry-button" 
+                    onClick={handleCheckBfgUpdate}
+                    disabled={bfgStatus.isDownloading}
+                  >
+                    Retry Download
+                  </button>
+                </div>
+              ) : (
+                <div className="bfg-status unknown">
+                  <span className="status-icon">❔</span>
+                  <span className="status-text">BFG status unknown</span>
+                  <button 
+                    className="retry-button" 
+                    onClick={handleCheckBfgUpdate}
+                    disabled={bfgStatus.isDownloading}
+                  >
+                    Initialize BFG
+                  </button>
+                </div>
+              )}
             </div>
+            
+            {/* Fallback manual selection */}
+            <details className="manual-bfg-selection">
+              <summary>Manual BFG Selection (Advanced)</summary>
+              <div className="input-with-button">
+                <input 
+                  type="text" 
+                  value={bfgPath} 
+                  onChange={(e) => setBfgPath(e.target.value)} 
+                  placeholder="Select or enter path to bfg-x.x.x.jar" 
+                />
+                <button onClick={handleSelectBfgJar}>Browse</button>
+              </div>
+            </details>
+            
             <p className="help-text">
-              <a 
+              BFG is automatically downloaded and managed. Visit <a 
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
                   window.open('https://rtyley.github.io/bfg-repo-cleaner/', '_blank');
                 }}
+                rel="noopener noreferrer"
               >
-                Download BFG Repo-Cleaner
-              </a>
+                BFG Documentation
+              </a> for more information.
             </p>
           </div>
         </section>
@@ -505,11 +661,10 @@ const AppContent: React.FC = () => {
           </div>
         </section>
 
-        <div className="action-buttons">
-          <button 
+        <div className="action-buttons">          <button 
             className="primary-button"
             onClick={handleCleanRepository}
-            disabled={isProcessing || isRunningPostCommands || isResetting || isCheckingSecrets || isCleaningSecrets || !bfgPath || !repoPath}
+            disabled={isProcessing || isRunningPostCommands || isResetting || isCheckingSecrets || isCleaningSecrets || !repoPath || (!bfgStatus.isAvailable && !bfgPath)}
           >
             {isCheckingSecrets ? 'Checking for Secrets...' : 
              isProcessing ? 'Cleaning Repository...' : 'Clean Repository'}

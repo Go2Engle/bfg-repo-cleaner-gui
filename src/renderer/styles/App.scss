@@ -682,6 +682,109 @@ $warning-color: var(--warning-color);
   }
 }
 
+// BFG Status Section
+.bfg-status-section {
+  margin-bottom: 1rem;
+
+  .bfg-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg-color);
+    margin-bottom: 0.5rem;
+
+    .status-icon {
+      font-size: 1.2rem;
+      min-width: 24px;
+    }
+
+    .status-text {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .status-message {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-left: 0.5rem;
+    }
+
+    &.downloading {
+      border-color: var(--warning-color);
+      background: rgba(255, 149, 0, 0.1);
+    }
+
+    &.available {
+      border-color: var(--success-color);
+      background: rgba(52, 199, 89, 0.1);
+    }
+
+    &.error {
+      border-color: var(--error-color);
+      background: rgba(255, 59, 48, 0.1);
+    }
+
+    &.unknown {
+      border-color: var(--text-secondary);
+      background: rgba(142, 142, 147, 0.1);
+    }
+
+    .update-button, .retry-button {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      border: 1px solid var(--primary-color);
+      background: transparent;
+      color: var(--primary-color);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover:not(:disabled) {
+        background: var(--primary-color);
+        color: white;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .retry-button {
+      border-color: var(--error-color);
+      color: var(--error-color);
+
+      &:hover:not(:disabled) {
+        background: var(--error-color);
+        color: white;
+      }
+    }
+  }
+}
+
+.manual-bfg-selection {
+  margin-top: 1rem;
+  
+  summary {
+    cursor: pointer;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    user-select: none;
+    
+    &:hover {
+      color: var(--text-color);
+    }
+  }
+  
+  .input-with-button {
+    margin-top: 0.5rem;
+  }
+}
+
 // Scrollbar styling for light and dark themes
 ::-webkit-scrollbar {
   width: 8px;

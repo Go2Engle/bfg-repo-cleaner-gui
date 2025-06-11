@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { BFGManager } from './bfg-manager';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -10,6 +11,7 @@ if (require('electron-squirrel-startup')) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let bfgManager: BFGManager;
 
 const createWindow = (): void => {  // Create the browser window
   mainWindow = new BrowserWindow({
@@ -31,10 +33,12 @@ const createWindow = (): void => {  // Create the browser window
 
   // Load the index.html of the app
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
-
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show();
+    
+    // Initialize BFG manager and check for updates
+    initializeBFGManager();
   });
 
   // Set up window event listeners to sync state with renderer
@@ -97,8 +101,119 @@ ipcMain.handle('window-is-maximized', () => {
   return mainWindow ? mainWindow.isMaximized() : false;
 });
 
+// BFG Manager IPC handlers
+ipcMain.handle('bfg-get-status', () => {
+  if (!bfgManager) {
+    return { isAvailable: false, version: null, path: null, isDownloading: false, error: 'BFG Manager not initialized' };
+  }
+  return bfgManager.getStatus();
+});
+
+ipcMain.handle('bfg-check-update', async () => {
+  if (!bfgManager) {
+    return { success: false, message: 'BFG Manager not initialized' };
+  }
+  
+  try {
+    const result = await bfgManager.checkAndUpdateBFG();
+    
+    // Send status update to renderer
+    if (mainWindow) {
+      const status = bfgManager.getStatus();
+      mainWindow.webContents.send('bfg-status-update', { 
+        ...status, 
+        message: result.message 
+      });
+    }
+    
+    return result;
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : String(error) 
+    };
+  }
+});
+
+ipcMain.handle('bfg-get-available-versions', async () => {
+  if (!bfgManager) {
+    return [];
+  }
+  
+  try {
+    return await bfgManager.getAvailableVersions();
+  } catch (error) {
+    console.error('Error getting available BFG versions:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('bfg-download-version', async (event, version: string) => {
+  if (!bfgManager) {
+    return { success: false, message: 'BFG Manager not initialized' };
+  }
+  
+  try {
+    const result = await bfgManager.downloadSpecificVersion(version);
+    
+    // Send status update to renderer
+    if (mainWindow) {
+      const status = bfgManager.getStatus();
+      mainWindow.webContents.send('bfg-status-update', { 
+        ...status, 
+        message: result.message 
+      });
+    }
+    
+    return result;
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : String(error) 
+    };
+  }
+});
+
 // Check for BFG jar existence and version
 const execPromise = promisify(exec);
+
+// Initialize BFG Manager
+async function initializeBFGManager(): Promise<void> {
+  try {
+    bfgManager = BFGManager.getInstance();
+    console.log('Initializing BFG Manager...');
+    
+    // Send status update to renderer
+    if (mainWindow) {
+      mainWindow.webContents.send('bfg-status-update', { 
+        isDownloading: true, 
+        message: 'Checking for BFG updates...' 
+      });
+    }
+    
+    const result = await bfgManager.checkAndUpdateBFG();
+    console.log('BFG Manager initialization result:', result);
+    
+    // Send final status to renderer
+    if (mainWindow) {
+      const status = bfgManager.getStatus();
+      mainWindow.webContents.send('bfg-status-update', { 
+        ...status, 
+        message: result.message 
+      });
+    }
+  } catch (error) {
+    console.error('Error initializing BFG Manager:', error);
+    if (mainWindow) {
+      mainWindow.webContents.send('bfg-status-update', { 
+        isAvailable: false,
+        isDownloading: false,
+        error: error instanceof Error ? error.message : String(error),
+        message: 'Failed to initialize BFG'
+      });
+    }
+  }
+}
 
 // Handle repository cleaning request
 ipcMain.handle('clean-repository', async (event, options) => {
@@ -109,12 +224,21 @@ ipcMain.handle('clean-repository', async (event, options) => {
       return { success: false, message: 'Repository path does not exist' };
     }
     
-    if (!fs.existsSync(bfgPath)) {
-      return { success: false, message: 'BFG jar file path does not exist' };
+    // Use provided bfgPath or get from BFG manager
+    let actualBfgPath = bfgPath;
+    if (!actualBfgPath && bfgManager) {
+      const status = bfgManager.getStatus();
+      if (status.isAvailable && status.path) {
+        actualBfgPath = status.path;
+      }
+    }
+    
+    if (!actualBfgPath || !fs.existsSync(actualBfgPath)) {
+      return { success: false, message: 'BFG jar file not available. Please ensure BFG is downloaded.' };
     }
     
     // Construct the BFG command based on user options
-    let command = `java -jar "${bfgPath}" `;
+    let command = `java -jar "${actualBfgPath}" `;
     
     // Add text replacements if any
     if (textReplacements && textReplacements.length > 0) {
