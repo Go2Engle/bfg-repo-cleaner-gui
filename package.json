@@ -1,7 +1,7 @@
 {
   "name": "bfg-repo-cleaner-gui",
   "productName": "bfg-repo-cleaner-gui",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "A GUI application for BFG Repo-Cleaner to clean Git repositories",
   "main": "dist/main.js",
   "scripts": {
