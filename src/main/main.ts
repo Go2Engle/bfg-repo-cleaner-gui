@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, clipboard } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { exec } from 'child_process';
@@ -103,6 +103,26 @@ ipcMain.handle('window-close', () => {
 
 ipcMain.handle('window-is-maximized', () => {
   return mainWindow ? mainWindow.isMaximized() : false;
+});
+
+// Clipboard handlers
+ipcMain.handle('clipboard-read-text', () => {
+  try {
+    return { success: true, text: clipboard.readText() };
+  } catch (error) {
+    console.error('Error reading clipboard:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('clipboard-write-text', (event, text: string) => {
+  try {
+    clipboard.writeText(text);
+    return { success: true };
+  } catch (error) {
+    console.error('Error writing to clipboard:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
 });
 
 // BFG Manager IPC handlers

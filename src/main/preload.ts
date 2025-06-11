@@ -44,11 +44,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   windowMinimize: () => ipcRenderer.invoke('window-minimize'),
   windowMaximize: () => ipcRenderer.invoke('window-maximize'),
   windowClose: () => ipcRenderer.invoke('window-close'),
-  windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
-  // Window state listener
+  windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),  // Window state listener
   onWindowMaximized: (callback: (isMaximized: boolean) => void) => {
     ipcRenderer.on('window-maximized', (_, isMaximized) => callback(isMaximized));
-  },
+  },  // Clipboard functions
+  clipboardReadText: () => ipcRenderer.invoke('clipboard-read-text'),
+  clipboardWriteText: (text: string) => ipcRenderer.invoke('clipboard-write-text', text),
   // Platform information
   getPlatform: () => process.platform
 });
