@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './styles/App.scss';
 import { ThemeProvider } from './context/ThemeContext';
 import TitleBar from './components/TitleBar';
+import ContextMenu from './components/ContextMenu';
+import { useInputContextMenu, useTextareaContextMenu } from './hooks/useContextMenu';
 
 // Define the type for the window.electronAPI
 declare global {
@@ -108,8 +110,10 @@ declare global {
       windowMinimize: () => Promise<void>;
       windowMaximize: () => Promise<void>;
       windowClose: () => Promise<void>;
-      windowIsMaximized: () => Promise<boolean>;
-      onWindowMaximized: (callback: (isMaximized: boolean) => void) => void;
+      windowIsMaximized: () => Promise<boolean>;      onWindowMaximized: (callback: (isMaximized: boolean) => void) => void;
+      // Clipboard functions
+      clipboardReadText: () => Promise<{ success: boolean; text?: string; error?: string }>;
+      clipboardWriteText: (text: string) => Promise<{ success: boolean; error?: string }>;
       // Platform information
       getPlatform: () => string;
     };
@@ -135,7 +139,6 @@ const AppContent: React.FC = () => {  // State
   const [isCheckingSecrets, setIsCheckingSecrets] = useState<boolean>(false);
   const [foundSecrets, setFoundSecrets] = useState<Array<{secret: string, files: string[]}>>([]);
   const [showSecretWarning, setShowSecretWarning] = useState<boolean>(false);  const [isCleaningSecrets, setIsCleaningSecrets] = useState<boolean>(false);
-
   // BFG Manager state
   const [bfgStatus, setBfgStatus] = useState<{
     isAvailable: boolean;
@@ -149,6 +152,17 @@ const AppContent: React.FC = () => {  // State
     version: null,
     path: null,
     isDownloading: false,    error: null
+  });  // Context menu hooks
+  const repoUrlContextMenu = useInputContextMenu({
+    onPaste: (text) => setRepoUrl(text)
+  });
+
+  const replacementsContextMenu = useTextareaContextMenu({
+    onPaste: (text) => setReplacements(prev => prev ? prev + '\n' + text : text)
+  });
+
+  const fileSizesContextMenu = useInputContextMenu({
+    onPaste: (text) => setFileSizes(text)
   });
 
   // Initialize BFG status and listen for updates
@@ -507,16 +521,16 @@ const AppContent: React.FC = () => {  // State
         </section>
 
         <section className="section">
-          <h2>Repository Settings</h2>
-
-          <div className="form-group">
+          <h2>Repository Settings</h2>          <div className="form-group">
             <label>Git Repository URL:</label>
             <input 
+              ref={repoUrlContextMenu.inputRef}
               type="text" 
               value={repoUrl} 
               onChange={(e) => setRepoUrl(e.target.value)} 
+              onContextMenu={repoUrlContextMenu.showContextMenu}
               placeholder="https://github.com/username/repository.git" 
-            />            <p className="help-text">Enter the URL of the Git repository to clone. The repository will be automatically cloned to a managed working directory.</p>
+            /><p className="help-text">Enter the URL of the Git repository to clone. The repository will be automatically cloned to a managed working directory.</p>
           </div>
 
           <div className="clone-actions">
@@ -609,24 +623,25 @@ const AppContent: React.FC = () => {  // State
         
         <section className="section">
           <h2>Cleaning Options</h2>
-          
-          <div className="form-group">
+            <div className="form-group">
             <label>Replace Text (Secrets, Passwords, etc.):</label>
             <textarea 
+              ref={replacementsContextMenu.textareaRef}
               value={replacements} 
               onChange={(e) => setReplacements(e.target.value)} 
+              onContextMenu={replacementsContextMenu.showContextMenu}
               placeholder="Enter text to replace (one per line, e.g. 'password=123')..."
               rows={5}
             />
             <p className="help-text">Enter one replacement per line</p>
-          </div>
-
-          <div className="form-group">
+          </div>          <div className="form-group">
             <label>Strip Files Larger Than:</label>
             <input 
+              ref={fileSizesContextMenu.inputRef}
               type="text" 
               value={fileSizes} 
               onChange={(e) => setFileSizes(e.target.value)} 
+              onContextMenu={fileSizesContextMenu.showContextMenu}
               placeholder="e.g., 50M, 10K" 
             />
             <p className="help-text">Examples: 10M (10 megabytes), 1K (1 kilobyte)</p>
@@ -735,11 +750,54 @@ const AppContent: React.FC = () => {  // State
             <pre>{result}</pre>
           </div>
         )}
-      </div>
-
-      <footer className="footer">
+      </div>      <footer className="footer">
         <p>BFG Repo-Cleaner GUI © 2025 | <a href="https://github.com/rtyley/bfg-repo-cleaner" target="_blank" rel="noopener noreferrer">BFG Documentation</a></p>
       </footer>
+      
+      {/* Context Menus */}
+      {repoUrlContextMenu.contextMenu.isVisible && (
+        <ContextMenu
+          x={repoUrlContextMenu.contextMenu.x}
+          y={repoUrlContextMenu.contextMenu.y}
+          onClose={repoUrlContextMenu.hideContextMenu}
+          onPaste={repoUrlContextMenu.handlePaste}
+          onCopy={repoUrlContextMenu.handleCopy}
+          onCut={repoUrlContextMenu.handleCut}
+          onSelectAll={repoUrlContextMenu.handleSelectAll}
+          canPaste={repoUrlContextMenu.contextMenu.canPaste}
+          canCopy={repoUrlContextMenu.contextMenu.canCopy}
+          canCut={repoUrlContextMenu.contextMenu.canCut}
+        />
+      )}
+        {replacementsContextMenu.contextMenu.isVisible && (
+        <ContextMenu
+          x={replacementsContextMenu.contextMenu.x}
+          y={replacementsContextMenu.contextMenu.y}
+          onClose={replacementsContextMenu.hideContextMenu}
+          onPaste={replacementsContextMenu.handlePaste}
+          onCopy={replacementsContextMenu.handleCopy}
+          onCut={replacementsContextMenu.handleCut}
+          onSelectAll={replacementsContextMenu.handleSelectAll}
+          canPaste={replacementsContextMenu.contextMenu.canPaste}
+          canCopy={replacementsContextMenu.contextMenu.canCopy}
+          canCut={replacementsContextMenu.contextMenu.canCut}
+        />
+      )}
+      
+      {fileSizesContextMenu.contextMenu.isVisible && (
+        <ContextMenu
+          x={fileSizesContextMenu.contextMenu.x}
+          y={fileSizesContextMenu.contextMenu.y}
+          onClose={fileSizesContextMenu.hideContextMenu}
+          onPaste={fileSizesContextMenu.handlePaste}
+          onCopy={fileSizesContextMenu.handleCopy}
+          onCut={fileSizesContextMenu.handleCut}
+          onSelectAll={fileSizesContextMenu.handleSelectAll}
+          canPaste={fileSizesContextMenu.contextMenu.canPaste}
+          canCopy={fileSizesContextMenu.contextMenu.canCopy}
+          canCut={fileSizesContextMenu.contextMenu.canCut}
+        />
+      )}
         </div>
       </div>
     </div>
